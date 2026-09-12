@@ -375,46 +375,9 @@ export default function DashboardLayout({
         {/* SIDEBAR FOOTER / USER */}
         {/* ================================================= */}
 
-        <div className="border-t border-slate-800 p-3">
+        
 
-          <div className="flex items-center gap-2.5 rounded-lg bg-slate-900 px-2.5 py-2.5">
-
-            {/* Avatar */}
-
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
-              {getInitials(name)}
-            </div>
-
-            {/* User */}
-
-            <div className="min-w-0 flex-1">
-
-              <p
-                className="truncate text-[10px] font-semibold text-slate-200"
-                title={name}
-              >
-                {name || "Loading..."}
-              </p>
-
-              <p
-                className="mt-0.5 truncate text-[9px] uppercase tracking-wide text-slate-500"
-                title={role}
-              >
-                {role || "User"}
-              </p>
-
-            </div>
-
-            {/* Online Indicator */}
-
-            <span
-              title="Online"
-              className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
-            />
-
-          </div>
-
-        </div>
+      
 
       </aside>
 
