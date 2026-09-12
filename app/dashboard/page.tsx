@@ -9,72 +9,125 @@ import {
   type Audit,
 } from "@/app/lib/api/auditApi";
 
+import {
+  getAllFindings,
+  type Finding,
+} from "@/app/lib/api/findingApi";
+
 export default function DashboardPage() {
+  // =========================
+  // STATE
+  // =========================
+
   const [audits, setAudits] = useState<Audit[]>([]);
+  const [findings, setFindings] = useState<Finding[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-
-
-  
-
   // =========================
-  // FETCH AUDITS
+  // FETCH DASHBOARD DATA
   // =========================
+
   useEffect(() => {
-    const fetchAudits = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const data = await getAllAudits();
+        // Fetch audits and findings together
+        const [auditData, findingData] = await Promise.all([
+          getAllAudits(),
+          getAllFindings(),
+        ]);
 
-        setAudits(data || []);
+        setAudits(auditData || []);
+        setFindings(findingData || []);
       } catch (err: any) {
-        console.error("Failed to fetch audits:", err);
+        console.error(
+          "Failed to fetch dashboard data:",
+          err
+        );
 
         if (err?.response?.status === 401) {
-          setError("Your session has expired. Please login again.");
+          setError(
+            "Your session has expired. Please login again."
+          );
         } else if (err?.response?.status === 403) {
-          setError("You do not have permission to view audits.");
+          setError(
+            "You do not have permission to view dashboard data."
+          );
         } else if (err?.response?.data?.message) {
           setError(err.response.data.message);
         } else {
-          setError("Unable to load dashboard data.");
+          setError(
+            "Unable to load dashboard data."
+          );
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAudits();
+    fetchDashboardData();
   }, []);
 
   // =========================
-  // CALCULATE SUMMARY
+  // AUDIT SUMMARY
   // =========================
 
   const totalAudits = audits.length;
 
   const pendingAudits = audits.filter(
-    (audit) => audit.status?.toLowerCase() === "pending"
+    (audit) =>
+      audit.status?.toLowerCase() === "pending"
   ).length;
 
   const completedAudits = audits.filter(
-    (audit) => audit.status?.toLowerCase() === "completed"
+    (audit) =>
+      audit.status?.toLowerCase() === "completed"
   ).length;
 
   const inProgressAudits = audits.filter(
-    (audit) => audit.status?.toLowerCase() === "in progress"
+    (audit) =>
+      audit.status?.toLowerCase() === "in progress"
   ).length;
 
   // =========================
-  // PROGRESS
+  // FINDING SUMMARY
+  // =========================
+
+  const totalFindings = findings.length;
+
+  const openFindings = findings.filter(
+    (finding) =>
+      finding.status?.toLowerCase() === "open"
+  ).length;
+
+  const inProgressFindings = findings.filter(
+    (finding) =>
+      finding.status?.toLowerCase() === "in progress"
+  ).length;
+
+  const resolvedFindings = findings.filter(
+    (finding) =>
+      finding.status?.toLowerCase() === "resolved"
+  ).length;
+
+  const criticalFindings = findings.filter(
+    (finding) =>
+      finding.severity?.toLowerCase() === "critical"
+  ).length;
+
+  // =========================
+  // AUDIT PROGRESS
   // =========================
 
   const progressPercentage =
     totalAudits > 0
-      ? Math.round((completedAudits / totalAudits) * 100)
+      ? Math.round(
+          (completedAudits / totalAudits) * 100
+        )
       : 0;
 
   // =========================
@@ -95,15 +148,21 @@ export default function DashboardPage() {
   // =========================
 
   const getStatusClass = (status: string) => {
-    if (status?.toLowerCase() === "completed") {
+    if (
+      status?.toLowerCase() === "completed"
+    ) {
       return "bg-emerald-50 text-emerald-700";
     }
 
-    if (status?.toLowerCase() === "in progress") {
+    if (
+      status?.toLowerCase() === "in progress"
+    ) {
       return "bg-blue-50 text-blue-700";
     }
 
-    if (status?.toLowerCase() === "pending") {
+    if (
+      status?.toLowerCase() === "pending"
+    ) {
       return "bg-amber-50 text-amber-700";
     }
 
@@ -111,15 +170,21 @@ export default function DashboardPage() {
   };
 
   const getStatusDot = (status: string) => {
-    if (status?.toLowerCase() === "completed") {
+    if (
+      status?.toLowerCase() === "completed"
+    ) {
       return "bg-emerald-500";
     }
 
-    if (status?.toLowerCase() === "in progress") {
+    if (
+      status?.toLowerCase() === "in progress"
+    ) {
       return "bg-blue-500";
     }
 
-    if (status?.toLowerCase() === "pending") {
+    if (
+      status?.toLowerCase() === "pending"
+    ) {
       return "bg-amber-500";
     }
 
@@ -131,7 +196,9 @@ export default function DashboardPage() {
   // =========================
 
   const formatDate = (date: string) => {
-    if (!date) return "-";
+    if (!date) {
+      return "-";
+    }
 
     const parsedDate = new Date(date);
 
@@ -139,11 +206,14 @@ export default function DashboardPage() {
       return date;
     }
 
-    return parsedDate.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    return parsedDate.toLocaleDateString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    );
   };
 
   // =========================
@@ -155,7 +225,10 @@ export default function DashboardPage() {
       return "Not Assigned";
     }
 
-    return audit.auditor.name || "Unknown Auditor";
+    return (
+      audit.auditor.name ||
+      "Unknown Auditor"
+    );
   };
 
   // =========================
@@ -163,7 +236,10 @@ export default function DashboardPage() {
   // =========================
 
   const getInitials = (name: string) => {
-    if (!name || name === "Not Assigned") {
+    if (
+      !name ||
+      name === "Not Assigned"
+    ) {
       return "NA";
     }
 
@@ -184,6 +260,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50 p-5">
         <div className="flex min-h-[70vh] items-center justify-center">
           <div className="text-center">
+
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
 
             <p className="mt-4 text-sm font-medium text-slate-600">
@@ -191,8 +268,9 @@ export default function DashboardPage() {
             </p>
 
             <p className="mt-1 text-xs text-slate-400">
-              Fetching latest audit data
+              Fetching latest audit and finding data
             </p>
+
           </div>
         </div>
       </div>
@@ -207,6 +285,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-slate-50 p-5">
         <div className="mx-auto max-w-3xl rounded-xl border border-red-200 bg-white p-8 text-center shadow-sm">
+
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl">
             ⚠
           </div>
@@ -220,15 +299,22 @@ export default function DashboardPage() {
           </p>
 
           <button
-            onClick={() => window.location.reload()}
+            onClick={() =>
+              window.location.reload()
+            }
             className="mt-5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
             Try Again
           </button>
+
         </div>
       </div>
     );
   }
+
+  // =========================
+  // DASHBOARD
+  // =========================
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-5">
@@ -249,7 +335,7 @@ export default function DashboardPage() {
           </h1>
 
           <p className="mt-0.5 text-xs text-slate-500">
-            Overview of your audit activities.
+            Overview of your audit activities and findings.
           </p>
         </div>
 
@@ -260,6 +346,7 @@ export default function DashboardPage() {
           <span className="text-base">+</span>
           Create Audit
         </Link>
+
       </div>
 
       {/* =========================
@@ -293,6 +380,7 @@ export default function DashboardPage() {
             </div>
 
           </div>
+
         </div>
 
         {/* PENDING */}
@@ -320,6 +408,7 @@ export default function DashboardPage() {
             </div>
 
           </div>
+
         </div>
 
         {/* COMPLETED */}
@@ -347,11 +436,15 @@ export default function DashboardPage() {
             </div>
 
           </div>
+
         </div>
 
         {/* OPEN FINDINGS */}
 
-        <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <Link
+          href="/dashboard/finding"
+          className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
 
           <div className="flex items-start justify-between">
 
@@ -361,11 +454,11 @@ export default function DashboardPage() {
               </p>
 
               <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                0
+                {openFindings}
               </h2>
 
               <p className="mt-0.5 text-[10px] text-slate-400">
-                Finding API not connected
+                {totalFindings} total findings
               </p>
             </div>
 
@@ -374,12 +467,138 @@ export default function DashboardPage() {
             </div>
 
           </div>
-        </div>
+
+        </Link>
 
       </div>
 
       {/* =========================
-          QUICK OVERVIEW
+          FINDING OVERVIEW
+      ========================= */}
+
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+        {/* TOTAL FINDINGS */}
+
+        <Link
+          href="/dashboard/finding"
+          className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Total Findings
+              </h2>
+
+              <p className="mt-0.5 text-[11px] text-slate-500">
+                All recorded findings
+              </p>
+            </div>
+
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-sm">
+              🔎
+            </div>
+
+          </div>
+
+          <div className="mt-4 flex items-end gap-2">
+
+            <span className="text-2xl font-bold text-slate-900">
+              {totalFindings}
+            </span>
+
+            <span className="mb-1 text-[10px] text-slate-400">
+              findings
+            </span>
+
+          </div>
+
+        </Link>
+
+        {/* IN PROGRESS FINDINGS */}
+
+        <Link
+          href="/dashboard/finding"
+          className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Findings In Progress
+              </h2>
+
+              <p className="mt-0.5 text-[11px] text-slate-500">
+                Currently being addressed
+              </p>
+            </div>
+
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-sm">
+              ◐
+            </div>
+
+          </div>
+
+          <div className="mt-4 flex items-end gap-2">
+
+            <span className="text-2xl font-bold text-blue-600">
+              {inProgressFindings}
+            </span>
+
+            <span className="mb-1 text-[10px] text-slate-400">
+              findings
+            </span>
+
+          </div>
+
+        </Link>
+
+        {/* CRITICAL FINDINGS */}
+
+        <Link
+          href="/dashboard/finding"
+          className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Critical Findings
+              </h2>
+
+              <p className="mt-0.5 text-[11px] text-slate-500">
+                Findings requiring attention
+              </p>
+            </div>
+
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-sm">
+              ⚠
+            </div>
+
+          </div>
+
+          <div className="mt-4 flex items-end gap-2">
+
+            <span className="text-2xl font-bold text-red-600">
+              {criticalFindings}
+            </span>
+
+            <span className="mb-1 text-[10px] text-slate-400">
+              critical
+            </span>
+
+          </div>
+
+        </Link>
+
+      </div>
+
+      {/* =========================
+          AUDIT QUICK OVERVIEW
       ========================= */}
 
       <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -418,6 +637,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-3 flex justify-between text-[10px] text-slate-500">
+
             <span>
               {completedAudits} Completed
             </span>
@@ -425,6 +645,7 @@ export default function DashboardPage() {
             <span>
               {totalAudits} Total
             </span>
+
           </div>
 
         </div>
@@ -601,7 +822,8 @@ export default function DashboardPage() {
 
                 recentAudits.map((audit) => {
 
-                  const auditorName = getAuditorName(audit);
+                  const auditorName =
+                    getAuditorName(audit);
 
                   return (
                     <tr
@@ -617,7 +839,11 @@ export default function DashboardPage() {
                           href={`/dashboard/audits/${audit.id}`}
                           className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                         >
-                          AUD-{String(audit.id).padStart(3, "0")}
+                          AUD-
+                          {String(audit.id).padStart(
+                            3,
+                            "0"
+                          )}
                         </Link>
 
                       </td>
@@ -639,7 +865,8 @@ export default function DashboardPage() {
                             </p>
 
                             <p className="mt-0.5 max-w-[280px] truncate text-[10px] text-slate-400">
-                              {audit.description || "No description"}
+                              {audit.description ||
+                                "No description"}
                             </p>
 
                           </div>
@@ -655,7 +882,9 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-2">
 
                           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[9px] font-semibold text-slate-600">
-                            {getInitials(auditorName)}
+                            {getInitials(
+                              auditorName
+                            )}
                           </div>
 
                           <div className="min-w-0">
@@ -703,7 +932,9 @@ export default function DashboardPage() {
                       <td className="px-4 py-3">
 
                         <span className="text-xs text-slate-600">
-                          {formatDate(audit.endDate)}
+                          {formatDate(
+                            audit.endDate
+                          )}
                         </span>
 
                       </td>

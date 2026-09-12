@@ -1,654 +1,584 @@
+
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
-const complianceRecords = [
-  {
-    id: "CMP-001",
-    act: "Shops and Establishments Act",
-    category: "Registration",
-    state: "Karnataka",
-    status: "Compliant",
-    dueDate: "15 Sep 2026",
-  },
-  {
-    id: "CMP-002",
-    act: "Payment of Wages Act",
-    category: "Returns",
-    state: "Karnataka",
-    status: "Due Soon",
-    dueDate: "20 Sep 2026",
-  },
-  {
-    id: "CMP-003",
-    act: "Factories Act",
-    category: "Registers",
-    state: "Maharashtra",
-    status: "Compliant",
-    dueDate: "25 Sep 2026",
-  },
-  {
-    id: "CMP-004",
-    act: "Contract Labour Act",
-    category: "Registration",
-    state: "Delhi",
-    status: "Overdue",
-    dueDate: "05 Sep 2026",
-  },
-  {
-    id: "CMP-005",
-    act: "Minimum Wages Act",
-    category: "Remittance",
-    state: "Karnataka",
-    status: "Compliant",
-    dueDate: "30 Sep 2026",
-  },
-  {
-    id: "CMP-006",
-    act: "Employees' Provident Funds Act",
-    category: "Returns",
-    state: "Tamil Nadu",
-    status: "Due Soon",
-    dueDate: "02 Oct 2026",
-  },
-  {
-    id: "CMP-007",
-    act: "Payment of Bonus Act",
-    category: "Returns",
-    state: "Karnataka",
-    status: "Compliant",
-    dueDate: "05 Oct 2026",
-  },
-  {
-    id: "CMP-008",
-    act: "Payment of Gratuity Act",
-    category: "Registers",
-    state: "Maharashtra",
-    status: "Overdue",
-    dueDate: "08 Oct 2026",
-  },
-  {
-    id: "CMP-009",
-    act: "Maternity Benefit Act",
-    category: "Registers",
-    state: "Delhi",
-    status: "Compliant",
-    dueDate: "12 Oct 2026",
-  },
-  {
-    id: "CMP-010",
-    act: "Equal Remuneration Act",
-    category: "Returns",
-    state: "Tamil Nadu",
-    status: "Due Soon",
-    dueDate: "15 Oct 2026",
-  },
-];
-
-function getStatusClass(status) {
-  if (status === "Compliant") {
-    return "bg-emerald-50 text-emerald-700";
-  }
-
-  if (status === "Due Soon") {
-    return "bg-amber-50 text-amber-700";
-  }
-
-  if (status === "Overdue") {
-    return "bg-red-50 text-red-700";
-  }
-
-  return "bg-slate-100 text-slate-700";
-}
-
-function getStatusDot(status) {
-  if (status === "Compliant") {
-    return "bg-emerald-500";
-  }
-
-  if (status === "Due Soon") {
-    return "bg-amber-500";
-  }
-
-  if (status === "Overdue") {
-    return "bg-red-500";
-  }
-
-  return "bg-slate-400";
-}
+import {
+  deleteCompliance,
+  getAllCompliance,
+  type Compliance,
+} from "@/app/lib/api/complianceApi";
 
 export default function CompliancePage() {
+  const [complianceRecords, setComplianceRecords] = useState<
+    Compliance[]
+  >([]);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [stateFilter, setStateFilter] = useState("All");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // =========================
+  // Fetch Compliance Records
+  // =========================
+
+  const fetchCompliance = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getAllCompliance();
+
+      setComplianceRecords(data);
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "Unable to load compliance records. Please check whether the backend is running."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompliance();
+  }, []);
+
+  // =========================
+  // Status List
+  // =========================
+
+  const statuses = useMemo(() => {
+    const uniqueStatuses = Array.from(
+      new Set(
+        complianceRecords
+          .map((record) => record.status)
+          .filter(Boolean)
+      )
+    );
+
+    return ["All", ...uniqueStatuses];
+  }, [complianceRecords]);
+
+  // =========================
+  // Search + Filter
+  // =========================
+
+  const filteredRecords = useMemo(() => {
+    const searchValue = search.toLowerCase().trim();
+
+    return complianceRecords.filter((record) => {
+      const matchesSearch =
+        !searchValue ||
+        record.id.toString().includes(searchValue) ||
+        record.requirement
+          ?.toLowerCase()
+          .includes(searchValue) ||
+        record.description
+          ?.toLowerCase()
+          .includes(searchValue) ||
+        record.status
+          ?.toLowerCase()
+          .includes(searchValue) ||
+        record.audit?.title
+          ?.toLowerCase()
+          .includes(searchValue);
+
+      const matchesStatus =
+        statusFilter === "All" ||
+        record.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [complianceRecords, search, statusFilter]);
+
+  // =========================
+  // Statistics
+  // =========================
+
+  const totalCompliance = complianceRecords.length;
 
   const compliantCount = complianceRecords.filter(
-    (record) => record.status === "Compliant"
+    (record) =>
+      record.status?.toLowerCase() === "compliant"
   ).length;
 
   const dueSoonCount = complianceRecords.filter(
-    (record) => record.status === "Due Soon"
+    (record) =>
+      record.status?.toLowerCase() === "due soon"
   ).length;
 
   const overdueCount = complianceRecords.filter(
-    (record) => record.status === "Overdue"
+    (record) =>
+      record.status?.toLowerCase() === "overdue"
   ).length;
 
-  const filteredRecords = complianceRecords.filter((record) => {
-    const searchValue = search.toLowerCase();
+  // =========================
+  // Delete
+  // =========================
 
-    const matchesSearch =
-      record.id.toLowerCase().includes(searchValue) ||
-      record.act.toLowerCase().includes(searchValue) ||
-      record.category.toLowerCase().includes(searchValue) ||
-      record.state.toLowerCase().includes(searchValue);
-
-    const matchesStatus =
-      statusFilter === "All" ||
-      record.status === statusFilter;
-
-    const matchesCategory =
-      categoryFilter === "All" ||
-      record.category === categoryFilter;
-
-    const matchesState =
-      stateFilter === "All" ||
-      record.state === stateFilter;
-
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesCategory &&
-      matchesState
+  const handleDelete = async (id: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this compliance record?"
     );
-  });
 
-  const resetFilters = () => {
-    setSearch("");
-    setStatusFilter("All");
-    setCategoryFilter("All");
-    setStateFilter("All");
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+      setError("");
+
+      await deleteCompliance(id);
+
+      setComplianceRecords((records) =>
+        records.filter((record) => record.id !== id)
+      );
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "Failed to delete compliance record. Please try again."
+      );
+    } finally {
+      setDeletingId(null);
+    }
   };
 
-  const filtersActive =
-    search ||
-    statusFilter !== "All" ||
-    categoryFilter !== "All" ||
-    stateFilter !== "All";
+  // =========================
+  // Reset Filters
+  // =========================
+
+  const handleReset = () => {
+    setSearch("");
+    setStatusFilter("All");
+  };
+
+  // =========================
+  // Status Style
+  // =========================
+
+  const getStatusStyle = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "compliant":
+        return "bg-green-50 text-green-700 border-green-200";
+
+      case "due soon":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200";
+
+      case "overdue":
+        return "bg-red-50 text-red-700 border-red-200";
+
+      case "in progress":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+
+      case "pending":
+        return "bg-gray-50 text-gray-700 border-gray-200";
+
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200";
+    }
+  };
+
+  // =========================
+  // Loading
+  // =========================
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex min-h-56 items-center justify-center rounded-xl border border-gray-200 bg-white">
+            <div className="text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+
+              <p className="mt-3 text-sm text-gray-500">
+                Loading compliance records...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // Main UI
+  // =========================
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-5">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-5">
+      <div className="mx-auto max-w-7xl space-y-4">
 
-      {/* HEADER */}
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* ================= HEADER ================= */}
 
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Link
-              href="/dashboard"
-              className="hover:text-blue-600"
-            >
-              Dashboard
-            </Link>
-
-            <span>/</span>
-
-            <span className="text-slate-700">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
               Compliance
-            </span>
+            </h1>
+
+            <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">
+              Manage and monitor compliance requirements
+            </p>
           </div>
 
-          <h1 className="mt-1.5 text-2xl font-bold text-slate-900">
-            Compliance
-          </h1>
-
-          <p className="mt-0.5 text-xs text-slate-500">
-            Monitor and manage statutory compliance requirements.
-          </p>
+          <Link
+            href="/dashboard/compliance/create"
+            className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 sm:px-4 sm:text-sm"
+          >
+            + Create Compliance
+          </Link>
         </div>
 
-        <Link
-          href="/dashboard/compliance/create"
-          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
-        >
-          <span className="text-base">+</span>
-          Add Compliance
-        </Link>
-      </div>
+        {/* ================= ERROR ================= */}
 
-      {/* SUMMARY CARDS */}
-      <div className="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {error && (
+          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            <span>{error}</span>
 
-        {/* TOTAL */}
-        <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setError("")}
+              className="ml-3 text-sm font-bold text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* ================= STAT CARDS ================= */}
+
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+
+          {/* Total */}
+          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+            <p className="text-xs text-gray-500">
+              Total Compliance
+            </p>
+
+            <p className="mt-1 text-2xl font-bold text-gray-900">
+              {totalCompliance}
+            </p>
+          </div>
+
+          {/* Compliant */}
+          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+            <p className="text-xs text-gray-500">
+              Compliant
+            </p>
+
+            <p className="mt-1 text-2xl font-bold text-green-600">
+              {compliantCount}
+            </p>
+          </div>
+
+          {/* Due Soon */}
+          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+            <p className="text-xs text-gray-500">
+              Due Soon
+            </p>
+
+            <p className="mt-1 text-2xl font-bold text-yellow-600">
+              {dueSoonCount}
+            </p>
+          </div>
+
+          {/* Overdue */}
+          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+            <p className="text-xs text-gray-500">
+              Overdue
+            </p>
+
+            <p className="mt-1 text-2xl font-bold text-red-600">
+              {overdueCount}
+            </p>
+          </div>
+
+        </div>
+
+        {/* ================= SEARCH / FILTER ================= */}
+
+        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px_auto] sm:items-end">
+
+            {/* Search */}
+
             <div>
-              <p className="text-[11px] font-medium text-slate-500">
-                Total Compliance
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                24
-              </h2>
-
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                All requirements
-              </p>
-            </div>
-
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-sm">
-              📋
-            </div>
-          </div>
-        </div>
-
-        {/* COMPLIANT */}
-        <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-medium text-slate-500">
-                Compliant
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-emerald-600">
-                16
-              </h2>
-
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                Requirements completed
-              </p>
-            </div>
-
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-50 text-sm">
-              ✓
-            </div>
-          </div>
-        </div>
-
-        {/* DUE SOON */}
-        <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-medium text-slate-500">
-                Due Soon
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-amber-600">
-                5
-              </h2>
-
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                Requiring attention
-              </p>
-            </div>
-
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-50 text-sm">
-              ⏳
-            </div>
-          </div>
-        </div>
-
-        {/* OVERDUE */}
-        <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-medium text-slate-500">
-                Overdue
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold text-red-600">
-                3
-              </h2>
-
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                Immediate action
-              </p>
-            </div>
-
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-sm">
-              ⚠
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* SEARCH & FILTERS */}
-      <div className="mb-5 rounded-lg border border-slate-200 bg-white shadow-sm">
-
-        <div className="border-b border-slate-100 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Search & Filters
-          </h2>
-
-          <p className="mt-0.5 text-[11px] text-slate-500">
-            Search and filter statutory compliance records.
-          </p>
-        </div>
-
-        <div className="p-4">
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-12">
-
-            {/* SEARCH */}
-            <div className="xl:col-span-5">
-              <label className="mb-1.5 block text-[11px] font-semibold text-slate-600">
+              <label
+                htmlFor="search"
+                className="mb-1 block text-xs font-semibold text-gray-600"
+              >
                 Search
               </label>
 
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                  🔍
-                </span>
-
-                <input
-                  type="text"
-                  placeholder="Search ID, Act, Category or State..."
-                  value={search}
-                  onChange={(event) =>
-                    setSearch(event.target.value)
-                  }
-                  className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-xs text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                />
-              </div>
+              <input
+                id="search"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search compliance..."
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition-all duration-150 placeholder:text-gray-400 focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
+              />
             </div>
 
-            {/* STATUS */}
-            <div className="xl:col-span-2">
-              <label className="mb-1.5 block text-[11px] font-semibold text-slate-600">
+            {/* Status */}
+
+            <div>
+              <label
+                htmlFor="status"
+                className="mb-1 block text-xs font-semibold text-gray-600"
+              >
                 Status
               </label>
 
               <select
+                id="status"
                 value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value)
+                onChange={(e) =>
+                  setStatusFilter(e.target.value)
                 }
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition-all duration-150 focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
               >
-                <option value="All">All Status</option>
-                <option value="Compliant">Compliant</option>
-                <option value="Due Soon">Due Soon</option>
-                <option value="Overdue">Overdue</option>
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* CATEGORY */}
-            <div className="xl:col-span-2">
-              <label className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                Category
-              </label>
+            {/* Reset */}
 
-              <select
-                value={categoryFilter}
-                onChange={(event) =>
-                  setCategoryFilter(event.target.value)
-                }
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-              >
-                <option value="All">All Categories</option>
-                <option value="Registration">
-                  Registration
-                </option>
-                <option value="Returns">
-                  Returns
-                </option>
-                <option value="Registers">
-                  Registers
-                </option>
-                <option value="Remittance">
-                  Remittance
-                </option>
-              </select>
-            </div>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              Reset
+            </button>
 
-            {/* STATE */}
-            <div className="xl:col-span-2">
-              <label className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                State
-              </label>
-
-              <select
-                value={stateFilter}
-                onChange={(event) =>
-                  setStateFilter(event.target.value)
-                }
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-              >
-                <option value="All">All States</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-              </select>
-            </div>
-
-            {/* RESET */}
-            <div className="flex items-end xl:col-span-1">
-              <button
-                onClick={resetFilters}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-
-          {/* RESULT INFO */}
-          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-
-            <p className="text-[11px] text-slate-500">
-              Showing{" "}
-              <span className="font-semibold text-slate-800">
-                {filteredRecords.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-semibold text-slate-800">
-                {complianceRecords.length}
-              </span>{" "}
-              records
-            </p>
-
-            {filtersActive && (
-              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-600">
-                Filters Active
-              </span>
-            )}
           </div>
         </div>
-      </div>
 
-      {/* COMPLIANCE TABLE */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        {/* ================= TABLE ================= */}
 
-        {/* TABLE HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">
-              Compliance Requirements
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+
+          {/* Table Header */}
+
+          <div className="border-b border-gray-200 px-4 py-3">
+            <h2 className="text-sm font-semibold text-gray-900">
+              Compliance Records
             </h2>
 
-            <p className="mt-0.5 text-[11px] text-slate-500">
-              Overview of statutory compliance requirements.
+            <p className="mt-0.5 text-xs text-gray-500">
+              Showing {filteredRecords.length} of{" "}
+              {complianceRecords.length} records
             </p>
           </div>
 
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-slate-600">
-            {filteredRecords.length} Records
-          </span>
-        </div>
+          {/* Empty State */}
 
-        {/* TABLE */}
-        <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[900px]">
+          {filteredRecords.length === 0 ? (
+            <div className="flex min-h-52 items-center justify-center p-5 text-center">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  No compliance records found
+                </p>
 
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  ID
-                </th>
+                <p className="mt-1 text-xs text-gray-500">
+                  Try changing your search or filter.
+                </p>
+              </div>
+            </div>
+          ) : (
 
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Act
-                </th>
+            /* Table */
 
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Category
-                </th>
+            <div className="w-full">
+              <table className="w-full table-fixed">
 
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  State
-                </th>
+                {/* Column Widths */}
 
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Status
-                </th>
+                <colgroup>
+                  <col className="w-[9%]" />
+                  <col className="w-[21%]" />
+                  <col className="w-[27%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[11%]" />
+                  <col className="w-[16%]" />
+                </colgroup>
 
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Due Date
-                </th>
+                {/* Table Head */}
 
-                <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Action
-                </th>
-              </tr>
-            </thead>
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50 text-left">
 
-            <tbody className="divide-y divide-slate-100">
+                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      ID
+                    </th>
 
-              {filteredRecords.length > 0 ? (
-                filteredRecords.map((record) => (
-                  <tr
-                    key={record.id}
-                    className="transition hover:bg-slate-50"
-                  >
+                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Requirement
+                    </th>
 
-                    {/* ID */}
-                   <td className="px-4 py-3">
-  <Link
-    href={`/dashboard/compliance/${record.id}`}
-    className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
-  >
-    {record.id}
-  </Link>
-</td>
+                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Description
+                    </th>
 
-                    {/* ACT */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
+                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Audit
+                    </th>
 
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
-                          L
-                        </div>
+                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Status
+                    </th>
 
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-slate-800">
-                            {record.act}
-                          </p>
+                    <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Action
+                    </th>
 
-                          <p className="mt-0.5 text-[10px] text-slate-400">
-                            Statutory Compliance
-                          </p>
-                        </div>
+                  </tr>
+                </thead>
 
-                      </div>
-                    </td>
+                {/* Table Body */}
 
-                    {/* CATEGORY */}
-                    <td className="px-4 py-3">
-                      <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600">
-                        {record.category}
-                      </span>
-                    </td>
+                <tbody className="divide-y divide-gray-100">
 
-                    {/* STATE */}
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-slate-600">
-                        {record.state}
-                      </span>
-                    </td>
+                  {filteredRecords.map((record) => (
 
-                    {/* STATUS */}
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${getStatusClass(
-                          record.status
-                        )}`}
-                      >
+                    <tr
+                      key={record.id}
+                      className="transition-colors hover:bg-gray-50"
+                    >
+
+                      {/* ID */}
+
+                      <td className="px-3 py-3">
+                        <Link
+                          href={`/dashboard/compliance/${record.id}`}
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          CMP-
+                          {String(record.id).padStart(3, "0")}
+                        </Link>
+                      </td>
+
+                      {/* Requirement */}
+
+                      <td className="px-3 py-3">
+                        <p
+                          title={record.requirement}
+                          className="truncate text-xs font-semibold text-gray-900"
+                        >
+                          {record.requirement || "-"}
+                        </p>
+                      </td>
+
+                      {/* Description */}
+
+                      <td className="px-3 py-3">
+                        <p
+                          title={record.description}
+                          className="truncate text-xs text-gray-600"
+                        >
+                          {record.description || "-"}
+                        </p>
+                      </td>
+
+                      {/* Audit */}
+
+                      <td className="px-3 py-3">
+                        {record.audit ? (
+                          <Link
+                            href={`/dashboard/audits/${record.audit.id}`}
+                            title={
+                              record.audit.title ||
+                              `Audit #${record.audit.id}`
+                            }
+                            className="block truncate text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                          >
+                            {record.audit.title ||
+                              `Audit #${record.audit.id}`}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-gray-400">
+                            Not assigned
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Status */}
+
+                      <td className="px-3 py-3">
                         <span
-                          className={`h-1.5 w-1.5 rounded-full ${getStatusDot(
+                          className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold ${getStatusStyle(
                             record.status
                           )}`}
-                        ></span>
+                        >
+                          {record.status || "Unknown"}
+                        </span>
+                      </td>
 
-                        {record.status}
-                      </span>
-                    </td>
+                      {/* Actions */}
 
-                    {/* DUE DATE */}
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-slate-600">
-                        {record.dueDate}
-                      </span>
-                    </td>
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-1">
 
-                    {/* ACTION */}
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/dashboard/compliance/${record.id}`}
-                        className="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        View →
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="px-4 py-12 text-center"
-                  >
-                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-lg">
-                      🔍
-                    </div>
+                          {/* View */}
 
-                    <h3 className="mt-3 text-sm font-semibold text-slate-800">
-                      No compliance records found
-                    </h3>
+                          <Link
+                            href={`/dashboard/compliance/${record.id}`}
+                            className="rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                          >
+                            View
+                          </Link>
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      Try changing your search or filters.
-                    </p>
+                          {/* Edit */}
 
-                    <button
-                      onClick={resetFilters}
-                      className="mt-3 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-                    >
-                      Clear Filters
-                    </button>
-                  </td>
-                </tr>
-              )}
+                          <Link
+                            href={`/dashboard/compliance/${record.id}/edit`}
+                            className="rounded-md border border-blue-200 px-2 py-1 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50"
+                          >
+                            Edit
+                          </Link>
 
-            </tbody>
-          </table>
-        </div>
+                          {/* Delete */}
 
-        {/* FOOTER */}
-        <div className="border-t border-slate-100 px-4 py-2.5">
-          <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDelete(record.id)
+                            }
+                            disabled={
+                              deletingId === record.id
+                            }
+                            className="rounded-md border border-red-200 px-2 py-1 text-[10px] font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {deletingId === record.id
+                              ? "..."
+                              : "Delete"}
+                          </button>
 
-            <p className="text-[10px] text-slate-400">
-              Statutory compliance monitoring
-            </p>
+                        </div>
+                      </td>
 
-            <span className="text-[10px] text-slate-400">
-              {filteredRecords.length} of {complianceRecords.length}
-            </span>
+                    </tr>
 
-          </div>
+                  ))}
+
+                </tbody>
+
+              </table>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
