@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,7 +9,225 @@ import {
   type Audit,
 } from "@/app/lib/api/auditApi";
 
+import { useTheme } from "@/app/context/ThemeContext";
+
+// ======================================================
+// ICONS
+// ======================================================
+
+function SearchIcon() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function ClipboardIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 4.5V3h6v1.5" />
+      <path d="M9 10h6" />
+      <path d="M9 14h4" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m5 12 4 4L19 6" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+function AlertIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M10.3 4.5 3.7 17a2 2 0 0 0 1.8 3h13a2 2 0 0 0 1.8-3L13.7 4.5a1.9 1.9 0 0 0-3.4 0Z" />
+      <path d="M12 9v4" />
+      <path d="M12 16.5h.01" />
+    </svg>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 7h16" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="m9 7 .7-2h4.6l.7 2" />
+      <path d="M6 7l1 13h10l1-13" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 6h16" />
+      <path d="M7 12h10" />
+      <path d="M10 18h4" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 6 12 12" />
+      <path d="m18 6-12 12" />
+    </svg>
+  );
+}
+
+// ======================================================
+// PAGE
+// ======================================================
+
 export default function AuditsPage() {
+  const { theme } = useTheme();
+
+  const isDark = theme === "dark";
+
   const [audits, setAudits] = useState<Audit[]>([]);
 
   const [search, setSearch] = useState("");
@@ -23,9 +240,9 @@ export default function AuditsPage() {
     useState<number | null>(null);
   const [error, setError] = useState("");
 
-  // ----------------------------------------
-  // Fetch Audits
-  // ----------------------------------------
+  // ======================================================
+  // FETCH AUDITS
+  // ======================================================
 
   useEffect(() => {
     const fetchAudits = async () => {
@@ -39,27 +256,18 @@ export default function AuditsPage() {
 
         setAudits(data || []);
       } catch (error: any) {
-        console.error(
-          "Error fetching audits:",
-          error
-        );
+        console.error("Error fetching audits:", error);
 
         if (error.response?.status === 401) {
           setError(
             "Unauthorized. Please login again."
           );
-        } else if (
-          error.response?.status === 403
-        ) {
+        } else if (error.response?.status === 403) {
           setError(
             "You do not have permission to view audits."
           );
-        } else if (
-          error.response?.data?.message
-        ) {
-          setError(
-            error.response.data.message
-          );
+        } else if (error.response?.data?.message) {
+          setError(error.response.data.message);
         } else {
           setError(
             "Unable to load audits. Please check your backend connection."
@@ -73,73 +281,66 @@ export default function AuditsPage() {
     fetchAudits();
   }, []);
 
-  // ----------------------------------------
-  // Status Counts
-  // ----------------------------------------
+  // ======================================================
+  // STATUS COUNTS
+  // ======================================================
 
   const completedCount = audits.filter(
     (audit) =>
-      audit.status?.toLowerCase() ===
-      "completed"
+      audit.status?.toLowerCase() === "completed"
   ).length;
 
   const progressCount = audits.filter(
     (audit) =>
-      audit.status?.toLowerCase() ===
-      "in progress"
+      audit.status?.toLowerCase() === "in progress"
   ).length;
 
   const pendingCount = audits.filter(
     (audit) =>
-      audit.status?.toLowerCase() ===
-      "pending"
+      audit.status?.toLowerCase() === "pending"
   ).length;
 
-  // ----------------------------------------
-  // Search + Filter
-  // ----------------------------------------
+  // ======================================================
+  // SEARCH + FILTER
+  // ======================================================
 
-  const filteredAudits = audits.filter(
-    (audit) => {
-      const searchText =
-        search.toLowerCase().trim();
+  const filteredAudits = audits.filter((audit) => {
+    const searchText = search.toLowerCase().trim();
 
-      const auditorName =
-        audit.auditor?.name?.toLowerCase() ||
-        "";
+    const auditorName =
+      audit.auditor?.name?.toLowerCase() || "";
 
-      const matchesSearch =
-        String(audit.id)
-          .toLowerCase()
-          .includes(searchText) ||
-        audit.title
-          ?.toLowerCase()
-          .includes(searchText) ||
-        audit.description
-          ?.toLowerCase()
-          .includes(searchText) ||
-        auditorName.includes(searchText);
+    const matchesSearch =
+      String(audit.id)
+        .toLowerCase()
+        .includes(searchText) ||
+      audit.title
+        ?.toLowerCase()
+        .includes(searchText) ||
+      audit.description
+        ?.toLowerCase()
+        .includes(searchText) ||
+      auditorName.includes(searchText);
 
-      const matchesStatus =
-        statusFilter === "All" ||
-        audit.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "All" ||
+      audit.status === statusFilter;
 
-      // Department is not available
-      // in current Audit backend entity.
-      const matchesDepartment =
-        departmentFilter === "All";
+    // Department is not available
+    // in current Audit backend entity.
+    const matchesDepartment =
+      departmentFilter === "All";
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesDepartment
-      );
-    }
-  );
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesDepartment
+    );
+  });
 
-  // ----------------------------------------
-  // Reset Filters
-  // ----------------------------------------
+  // ======================================================
+  // RESET
+  // ======================================================
 
   const resetFilters = () => {
     setSearch("");
@@ -147,9 +348,9 @@ export default function AuditsPage() {
     setDepartmentFilter("All");
   };
 
-  // ----------------------------------------
-  // Delete Audit
-  // ----------------------------------------
+  // ======================================================
+  // DELETE
+  // ======================================================
 
   const handleDelete = async (id: number) => {
     const audit = audits.find(
@@ -179,9 +380,7 @@ export default function AuditsPage() {
         )
       );
 
-      alert(
-        "Audit deleted successfully!"
-      );
+      alert("Audit deleted successfully!");
     } catch (error: any) {
       console.error(
         "Error deleting audit:",
@@ -192,24 +391,16 @@ export default function AuditsPage() {
         setError(
           "Unauthorized. Please login again."
         );
-      } else if (
-        error.response?.status === 403
-      ) {
+      } else if (error.response?.status === 403) {
         setError(
           "You do not have permission to delete this audit."
         );
-      } else if (
-        error.response?.status === 404
-      ) {
+      } else if (error.response?.status === 404) {
         setError(
           "Audit not found. It may have already been deleted."
         );
-      } else if (
-        error.response?.data?.message
-      ) {
-        setError(
-          error.response.data.message
-        );
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
       } else {
         setError(
           "Unable to delete audit. Please try again."
@@ -220,19 +411,21 @@ export default function AuditsPage() {
     }
   };
 
-  // ----------------------------------------
-  // Status Badge
-  // ----------------------------------------
+  // ======================================================
+  // STATUS BADGE
+  // ======================================================
 
-  const getStatusBadge = (
-    status: string
-  ) => {
-    switch (
-      status?.toLowerCase()
-    ) {
+  const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
       case "completed":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-semibold ${
+              isDark
+                ? "bg-emerald-500/15 text-emerald-300"
+                : "bg-emerald-50 text-emerald-700"
+            }`}
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Completed
           </span>
@@ -240,7 +433,13 @@ export default function AuditsPage() {
 
       case "in progress":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-1 text-[9px] font-semibold text-amber-700">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-semibold ${
+              isDark
+                ? "bg-amber-500/15 text-amber-300"
+                : "bg-amber-50 text-amber-700"
+            }`}
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             In Progress
           </span>
@@ -248,7 +447,13 @@ export default function AuditsPage() {
 
       case "pending":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-1 text-[9px] font-semibold text-slate-600">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-semibold ${
+              isDark
+                ? "bg-slate-600/60 text-slate-200"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
             Pending
           </span>
@@ -256,7 +461,13 @@ export default function AuditsPage() {
 
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-1 text-[9px] font-semibold text-blue-600">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-semibold ${
+              isDark
+                ? "bg-blue-500/15 text-blue-300"
+                : "bg-blue-50 text-blue-600"
+            }`}
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
             {status || "Unknown"}
           </span>
@@ -264,22 +475,46 @@ export default function AuditsPage() {
     }
   };
 
-  // ----------------------------------------
-  // Loading State
-  // ----------------------------------------
+  // ======================================================
+  // LOADING
+  // ======================================================
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-3 md:p-4">
+      <div
+        className={`min-h-screen p-3 md:p-4 ${
+          isDark
+            ? "bg-slate-900"
+            : "bg-slate-50"
+        }`}
+      >
         <div className="flex min-h-[350px] items-center justify-center">
           <div className="text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+            <div
+              className={`mx-auto h-8 w-8 animate-spin rounded-full border-4 ${
+                isDark
+                  ? "border-slate-600 border-t-blue-400"
+                  : "border-slate-200 border-t-blue-600"
+              }`}
+            />
 
-            <p className="mt-3 text-sm font-medium text-slate-600">
+            <p
+              className={`mt-3 text-sm font-medium ${
+                isDark
+                  ? "text-slate-200"
+                  : "text-slate-600"
+              }`}
+            >
               Loading audits...
             </p>
 
-            <p className="mt-1 text-[10px] text-slate-400">
+            <p
+              className={`mt-1 text-[10px] ${
+                isDark
+                  ? "text-slate-400"
+                  : "text-slate-400"
+              }`}
+            >
               Fetching audit records
             </p>
           </div>
@@ -288,68 +523,111 @@ export default function AuditsPage() {
     );
   }
 
-  // ----------------------------------------
-  // Main UI
-  // ----------------------------------------
+  // ======================================================
+  // MAIN UI
+  // ======================================================
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 p-3 md:p-4">
-
-      {/* =====================================
+    <div
+      className={`min-h-screen overflow-x-hidden p-3 md:p-4 ${
+        isDark
+          ? "bg-slate-900"
+          : "bg-slate-50"
+      }`}
+    >
+      {/* ==================================================
           HEADER
-      ====================================== */}
+      ================================================== */}
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+          <div
+            className={`flex items-center gap-1.5 text-[10px] ${
+              isDark
+                ? "text-slate-400"
+                : "text-slate-500"
+            }`}
+          >
             <Link
               href="/dashboard"
-              className="transition hover:text-blue-600"
+              className="transition hover:text-blue-500"
             >
               Dashboard
             </Link>
 
             <span>/</span>
 
-            <span className="font-medium text-slate-700">
+            <span
+              className={
+                isDark
+                  ? "font-medium text-slate-200"
+                  : "font-medium text-slate-700"
+              }
+            >
               Audits
             </span>
           </div>
 
-          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+          <h1
+            className={`mt-1 text-xl font-bold tracking-tight md:text-2xl ${
+              isDark
+                ? "text-slate-100"
+                : "text-slate-900"
+            }`}
+          >
             Audits
           </h1>
 
-          <p className="mt-0.5 text-[10px] text-slate-500 md:text-xs">
+          <p
+            className={`mt-0.5 text-[10px] md:text-xs ${
+              isDark
+                ? "text-slate-400"
+                : "text-slate-500"
+            }`}
+          >
             Manage and monitor compliance audits.
           </p>
         </div>
 
         <Link
           href="/dashboard/audits/create"
-          className="inline-flex shrink-0 items-center justify-center gap-1 rounded-md bg-blue-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:bg-blue-700"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
-          <span className="text-sm leading-none">
-            +
-          </span>
-
+          <PlusIcon />
           Create Audit
         </Link>
       </div>
 
-      {/* =====================================
+      {/* ==================================================
           ERROR
-      ====================================== */}
+      ================================================== */}
 
       {error && (
-        <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-red-200 bg-red-50 px-3 py-2.5">
+        <div
+          className={`mb-4 flex items-center justify-between gap-3 rounded-md border px-3 py-2.5 ${
+            isDark
+              ? "border-red-500/30 bg-red-500/10"
+              : "border-red-200 bg-red-50"
+          }`}
+        >
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-red-700">
+            <p
+              className={`text-[11px] font-semibold ${
+                isDark
+                  ? "text-red-300"
+                  : "text-red-700"
+              }`}
+            >
               Something went wrong
             </p>
 
-            <p className="mt-0.5 truncate text-[10px] text-red-600">
+            <p
+              className={`mt-0.5 truncate text-[10px] ${
+                isDark
+                  ? "text-red-300/80"
+                  : "text-red-600"
+              }`}
+            >
               {error}
             </p>
           </div>
@@ -357,150 +635,304 @@ export default function AuditsPage() {
           <button
             type="button"
             onClick={() => setError("")}
-            className="shrink-0 text-sm font-bold text-red-400 hover:text-red-600"
+            className={`shrink-0 transition ${
+              isDark
+                ? "text-red-300 hover:text-red-200"
+                : "text-red-400 hover:text-red-600"
+            }`}
           >
-            ×
+            <XIcon />
           </button>
         </div>
       )}
 
-      {/* =====================================
+      {/* ==================================================
           SUMMARY CARDS
-      ====================================== */}
+      ================================================== */}
 
       <div className="mb-4 grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+        {/* TOTAL */}
 
-        {/* Total */}
-
-        <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+        <div
+          className={`rounded-lg border p-3 shadow-sm transition hover:-translate-y-0.5 ${
+            isDark
+              ? "border-slate-600 bg-slate-800 shadow-black/10"
+              : "border-slate-200 bg-white"
+          }`}
+        >
           <div className="flex items-center justify-between gap-2">
-
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium text-slate-500">
+            <div>
+              <p
+                className={`text-[10px] font-medium ${
+                  isDark
+                    ? "text-slate-400"
+                    : "text-slate-500"
+                }`}
+              >
                 Total Audits
               </p>
 
-              <h2 className="mt-1 text-xl font-bold text-slate-900">
+              <h2
+                className={`mt-1 text-xl font-bold ${
+                  isDark
+                    ? "text-slate-100"
+                    : "text-slate-900"
+                }`}
+              >
                 {audits.length}
               </h2>
 
-              <p className="mt-0.5 truncate text-[9px] text-slate-400">
+              <p
+                className={`mt-0.5 text-[9px] ${
+                  isDark
+                    ? "text-slate-500"
+                    : "text-slate-400"
+                }`}
+              >
                 All audit records
               </p>
             </div>
 
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-sm">
-              📋
+            <div
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                isDark
+                  ? "bg-blue-500/15 text-blue-300"
+                  : "bg-blue-50 text-blue-600"
+              }`}
+            >
+              <ClipboardIcon />
             </div>
           </div>
         </div>
 
-        {/* Completed */}
+        {/* COMPLETED */}
 
-        <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+        <div
+          className={`rounded-lg border p-3 shadow-sm transition hover:-translate-y-0.5 ${
+            isDark
+              ? "border-slate-600 bg-slate-800"
+              : "border-slate-200 bg-white"
+          }`}
+        >
           <div className="flex items-center justify-between gap-2">
-
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium text-slate-500">
+            <div>
+              <p
+                className={`text-[10px] font-medium ${
+                  isDark
+                    ? "text-slate-400"
+                    : "text-slate-500"
+                }`}
+              >
                 Completed
               </p>
 
-              <h2 className="mt-1 text-xl font-bold text-emerald-600">
+              <h2 className="mt-1 text-xl font-bold text-emerald-500">
                 {completedCount}
               </h2>
 
-              <p className="mt-0.5 truncate text-[9px] text-slate-400">
+              <p
+                className={`mt-0.5 text-[9px] ${
+                  isDark
+                    ? "text-slate-500"
+                    : "text-slate-400"
+                }`}
+              >
                 Completed audits
               </p>
             </div>
 
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-sm">
-              ✓
+            <div
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                isDark
+                  ? "bg-emerald-500/15 text-emerald-300"
+                  : "bg-emerald-50 text-emerald-600"
+              }`}
+            >
+              <CheckIcon />
             </div>
           </div>
         </div>
 
-        {/* In Progress */}
+        {/* IN PROGRESS */}
 
-        <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+        <div
+          className={`rounded-lg border p-3 shadow-sm transition hover:-translate-y-0.5 ${
+            isDark
+              ? "border-slate-600 bg-slate-800"
+              : "border-slate-200 bg-white"
+          }`}
+        >
           <div className="flex items-center justify-between gap-2">
-
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium text-slate-500">
+            <div>
+              <p
+                className={`text-[10px] font-medium ${
+                  isDark
+                    ? "text-slate-400"
+                    : "text-slate-500"
+                }`}
+              >
                 In Progress
               </p>
 
-              <h2 className="mt-1 text-xl font-bold text-amber-600">
+              <h2 className="mt-1 text-xl font-bold text-amber-500">
                 {progressCount}
               </h2>
 
-              <p className="mt-0.5 truncate text-[9px] text-slate-400">
+              <p
+                className={`mt-0.5 text-[9px] ${
+                  isDark
+                    ? "text-slate-500"
+                    : "text-slate-400"
+                }`}
+              >
                 Currently active
               </p>
             </div>
 
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-50 text-sm">
-              ◐
+            <div
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                isDark
+                  ? "bg-amber-500/15 text-amber-300"
+                  : "bg-amber-50 text-amber-600"
+              }`}
+            >
+              <ClockIcon />
             </div>
           </div>
         </div>
 
-        {/* Pending */}
+        {/* PENDING */}
 
-        <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+        <div
+          className={`rounded-lg border p-3 shadow-sm transition hover:-translate-y-0.5 ${
+            isDark
+              ? "border-slate-600 bg-slate-800"
+              : "border-slate-200 bg-white"
+          }`}
+        >
           <div className="flex items-center justify-between gap-2">
-
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium text-slate-500">
+            <div>
+              <p
+                className={`text-[10px] font-medium ${
+                  isDark
+                    ? "text-slate-400"
+                    : "text-slate-500"
+                }`}
+              >
                 Pending
               </p>
 
-              <h2 className="mt-1 text-xl font-bold text-slate-700">
+              <h2
+                className={`mt-1 text-xl font-bold ${
+                  isDark
+                    ? "text-slate-200"
+                    : "text-slate-700"
+                }`}
+              >
                 {pendingCount}
               </h2>
 
-              <p className="mt-0.5 truncate text-[9px] text-slate-400">
+              <p
+                className={`mt-0.5 text-[9px] ${
+                  isDark
+                    ? "text-slate-500"
+                    : "text-slate-400"
+                }`}
+              >
                 Awaiting action
               </p>
             </div>
 
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-sm">
-              ⏳
+            <div
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                isDark
+                  ? "bg-slate-700 text-slate-300"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              <ClockIcon />
             </div>
           </div>
         </div>
       </div>
 
-      {/* =====================================
+      {/* ==================================================
           SEARCH & FILTERS
-      ====================================== */}
+      ================================================== */}
 
-      <div className="mb-4 rounded-md border border-slate-200 bg-white shadow-sm">
+      <div
+        className={`mb-4 rounded-lg border shadow-sm ${
+          isDark
+            ? "border-slate-600 bg-slate-800"
+            : "border-slate-200 bg-white"
+        }`}
+      >
+        <div
+          className={`border-b px-3.5 py-2.5 ${
+            isDark
+              ? "border-slate-600"
+              : "border-slate-100"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-7 w-7 items-center justify-center rounded-md ${
+                isDark
+                  ? "bg-slate-700 text-slate-300"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              <FilterIcon />
+            </div>
 
-        <div className="border-b border-slate-100 px-3.5 py-2.5">
-          <h2 className="text-xs font-semibold text-slate-900">
-            Search & Filters
-          </h2>
+            <div>
+              <h2
+                className={`text-xs font-semibold ${
+                  isDark
+                    ? "text-slate-100"
+                    : "text-slate-900"
+                }`}
+              >
+                Search & Filters
+              </h2>
 
-          <p className="mt-0.5 text-[10px] text-slate-500">
-            Search and filter audit records.
-          </p>
+              <p
+                className={`mt-0.5 text-[10px] ${
+                  isDark
+                    ? "text-slate-400"
+                    : "text-slate-500"
+                }`}
+              >
+                Search and filter audit records.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="p-3.5">
-
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-12">
-
-            {/* Search */}
+            {/* SEARCH */}
 
             <div className="lg:col-span-5">
-              <label className="mb-1 block text-[10px] font-semibold text-slate-600">
+              <label
+                className={`mb-1 block text-[10px] font-semibold ${
+                  isDark
+                    ? "text-slate-300"
+                    : "text-slate-600"
+                }`}
+              >
                 Search
               </label>
 
               <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">
-                  🔍
+                <span
+                  className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${
+                    isDark
+                      ? "text-slate-400"
+                      : "text-slate-400"
+                  }`}
+                >
+                  <SearchIcon />
                 </span>
 
                 <input
@@ -510,15 +942,25 @@ export default function AuditsPage() {
                     setSearch(e.target.value)
                   }
                   placeholder="Search ID, title, description or auditor..."
-                  className="w-full rounded-md border border-slate-300 bg-white py-1.5 pl-7 pr-2.5 text-[10px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
+                  className={`w-full rounded-md border py-2 pl-8 pr-2.5 text-[10px] outline-none transition focus:border-blue-500 ${
+                    isDark
+                      ? "border-slate-600 bg-slate-700 text-slate-100 placeholder:text-slate-400"
+                      : "border-slate-300 bg-white text-slate-700 placeholder:text-slate-400"
+                  }`}
                 />
               </div>
             </div>
 
-            {/* Status */}
+            {/* STATUS */}
 
             <div className="lg:col-span-2">
-              <label className="mb-1 block text-[10px] font-semibold text-slate-600">
+              <label
+                className={`mb-1 block text-[10px] font-semibold ${
+                  isDark
+                    ? "text-slate-300"
+                    : "text-slate-600"
+                }`}
+              >
                 Status
               </label>
 
@@ -527,7 +969,11 @@ export default function AuditsPage() {
                 onChange={(e) =>
                   setStatusFilter(e.target.value)
                 }
-                className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[10px] text-slate-700 outline-none transition focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
+                className={`w-full rounded-md border px-2.5 py-2 text-[10px] outline-none transition focus:border-blue-500 ${
+                  isDark
+                    ? "border-slate-600 bg-slate-700 text-slate-100"
+                    : "border-slate-300 bg-white text-slate-700"
+                }`}
               >
                 <option value="All">
                   All Status
@@ -547,10 +993,16 @@ export default function AuditsPage() {
               </select>
             </div>
 
-            {/* Department */}
+            {/* DEPARTMENT */}
 
             <div className="lg:col-span-3">
-              <label className="mb-1 block text-[10px] font-semibold text-slate-600">
+              <label
+                className={`mb-1 block text-[10px] font-semibold ${
+                  isDark
+                    ? "text-slate-300"
+                    : "text-slate-600"
+                }`}
+              >
                 Department
               </label>
 
@@ -561,7 +1013,11 @@ export default function AuditsPage() {
                     e.target.value
                   )
                 }
-                className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[10px] text-slate-700 outline-none transition focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
+                className={`w-full rounded-md border px-2.5 py-2 text-[10px] outline-none transition focus:border-blue-500 ${
+                  isDark
+                    ? "border-slate-600 bg-slate-700 text-slate-100"
+                    : "border-slate-300 bg-white text-slate-700"
+                }`}
               >
                 <option value="All">
                   All Departments
@@ -585,30 +1041,57 @@ export default function AuditsPage() {
               </select>
             </div>
 
-            {/* Reset */}
+            {/* RESET */}
 
             <div className="flex items-end lg:col-span-2">
               <button
                 type="button"
                 onClick={resetFilters}
-                className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-[10px] font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                className={`w-full rounded-md border px-2.5 py-2 text-[10px] font-semibold transition ${
+                  isDark
+                    ? "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                    : "border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                }`}
               >
                 Reset Filters
               </button>
             </div>
           </div>
 
-          {/* Filter Result */}
+          {/* RESULT */}
 
-          <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 pt-2.5">
-
-            <p className="text-[10px] text-slate-500">
+          <div
+            className={`mt-2.5 flex items-center justify-between border-t pt-2.5 ${
+              isDark
+                ? "border-slate-600"
+                : "border-slate-100"
+            }`}
+          >
+            <p
+              className={`text-[10px] ${
+                isDark
+                  ? "text-slate-400"
+                  : "text-slate-500"
+              }`}
+            >
               Showing{" "}
-              <span className="font-semibold text-slate-800">
+              <span
+                className={`font-semibold ${
+                  isDark
+                    ? "text-slate-200"
+                    : "text-slate-800"
+                }`}
+              >
                 {filteredAudits.length}
               </span>{" "}
               of{" "}
-              <span className="font-semibold text-slate-800">
+              <span
+                className={`font-semibold ${
+                  isDark
+                    ? "text-slate-200"
+                    : "text-slate-800"
+                }`}
+              >
                 {audits.length}
               </span>{" "}
               audits
@@ -617,7 +1100,13 @@ export default function AuditsPage() {
             {(search ||
               statusFilter !== "All" ||
               departmentFilter !== "All") && (
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-blue-600">
+              <span
+                className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${
+                  isDark
+                    ? "bg-blue-500/15 text-blue-300"
+                    : "bg-blue-50 text-blue-600"
+                }`}
+              >
                 Filters Active
               </span>
             )}
@@ -625,37 +1114,63 @@ export default function AuditsPage() {
         </div>
       </div>
 
-      {/* =====================================
+      {/* ==================================================
           AUDIT TABLE
-      ====================================== */}
+      ================================================== */}
 
-      <div className="w-full overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
+      <div
+        className={`w-full overflow-hidden rounded-lg border shadow-sm ${
+          isDark
+            ? "border-slate-600 bg-slate-800"
+            : "border-slate-200 bg-white"
+        }`}
+      >
+        {/* TABLE HEADER */}
 
-        {/* Header */}
-
-        <div className="flex items-center justify-between border-b border-slate-200 px-3.5 py-2.5">
-
-          <div className="min-w-0">
-            <h2 className="text-xs font-semibold text-slate-900">
+        <div
+          className={`flex items-center justify-between border-b px-3.5 py-2.5 ${
+            isDark
+              ? "border-slate-600"
+              : "border-slate-200"
+          }`}
+        >
+          <div>
+            <h2
+              className={`text-xs font-semibold ${
+                isDark
+                  ? "text-slate-100"
+                  : "text-slate-900"
+              }`}
+            >
               Audit Records
             </h2>
 
-            <p className="mt-0.5 text-[9px] text-slate-500">
+            <p
+              className={`mt-0.5 text-[9px] ${
+                isDark
+                  ? "text-slate-400"
+                  : "text-slate-500"
+              }`}
+            >
               Compliance audit list
             </p>
           </div>
 
-          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-medium text-slate-600">
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-medium ${
+              isDark
+                ? "bg-slate-700 text-slate-300"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
             {filteredAudits.length} Records
           </span>
         </div>
 
-        {/* Table */}
+        {/* TABLE */}
 
         <div className="w-full overflow-hidden">
-
           <table className="w-full table-fixed">
-
             <colgroup>
               <col className="w-[19%]" />
               <col className="w-[23%]" />
@@ -665,140 +1180,195 @@ export default function AuditsPage() {
               <col className="w-[16%]" />
             </colgroup>
 
-            <thead className="bg-slate-50">
-
+            <thead
+              className={
+                isDark
+                  ? "bg-slate-700/70"
+                  : "bg-slate-50"
+              }
+            >
               <tr>
-
-                <th className="px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                <th
+                  className={`px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide ${
+                    isDark
+                      ? "text-slate-300"
+                      : "text-slate-500"
+                  }`}
+                >
                   Audit
                 </th>
 
-                <th className="px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                <th
+                  className={`px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide ${
+                    isDark
+                      ? "text-slate-300"
+                      : "text-slate-500"
+                  }`}
+                >
                   Description
                 </th>
 
-                <th className="px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                <th
+                  className={`px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide ${
+                    isDark
+                      ? "text-slate-300"
+                      : "text-slate-500"
+                  }`}
+                >
                   Auditor
                 </th>
 
-                <th className="px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                <th
+                  className={`px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide ${
+                    isDark
+                      ? "text-slate-300"
+                      : "text-slate-500"
+                  }`}
+                >
                   Status
                 </th>
 
-                <th className="px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                <th
+                  className={`px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-wide ${
+                    isDark
+                      ? "text-slate-300"
+                      : "text-slate-500"
+                  }`}
+                >
                   End Date
                 </th>
 
-                <th className="px-2.5 py-2 text-right text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                <th
+                  className={`px-2.5 py-2 text-right text-[9px] font-semibold uppercase tracking-wide ${
+                    isDark
+                      ? "text-slate-300"
+                      : "text-slate-500"
+                  }`}
+                >
                   Actions
                 </th>
-
               </tr>
-
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
-
+            <tbody
+              className={`divide-y ${
+                isDark
+                  ? "divide-slate-600"
+                  : "divide-slate-100"
+              }`}
+            >
               {filteredAudits.length > 0 ? (
-
                 filteredAudits.map((audit) => (
-
                   <tr
                     key={audit.id}
-                    className="transition hover:bg-slate-50"
+                    className={`transition ${
+                      isDark
+                        ? "hover:bg-slate-700/60"
+                        : "hover:bg-slate-50"
+                    }`}
                   >
-
                     {/* AUDIT */}
 
                     <td className="overflow-hidden px-2.5 py-2.5">
-
                       <div className="flex min-w-0 items-center gap-2">
-
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[10px] font-bold text-blue-600">
+                        <div
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[10px] font-bold ${
+                            isDark
+                              ? "bg-blue-500/15 text-blue-300"
+                              : "bg-blue-50 text-blue-600"
+                          }`}
+                        >
                           A
                         </div>
 
                         <div className="min-w-0">
-
                           <p
-                            className="truncate text-[10px] font-semibold text-slate-800"
+                            className={`truncate text-[10px] font-semibold ${
+                              isDark
+                                ? "text-slate-100"
+                                : "text-slate-800"
+                            }`}
                             title={audit.title}
                           >
                             {audit.title}
                           </p>
 
-                          <p className="mt-0.5 text-[9px] font-medium text-blue-600">
+                          <p className="mt-0.5 text-[9px] font-medium text-blue-500">
                             AUD-
-                            {String(
-                              audit.id
-                            ).padStart(3, "0")}
+                            {String(audit.id).padStart(
+                              3,
+                              "0"
+                            )}
                           </p>
-
                         </div>
                       </div>
-
                     </td>
 
                     {/* DESCRIPTION */}
 
                     <td className="overflow-hidden px-2.5 py-2.5">
-
                       <p
-                        className="truncate text-[10px] text-slate-600"
+                        className={`truncate text-[10px] ${
+                          isDark
+                            ? "text-slate-300"
+                            : "text-slate-600"
+                        }`}
                         title={
-                          audit.description ||
-                          ""
+                          audit.description || ""
                         }
                       >
-                        {audit.description ||
-                          "-"}
+                        {audit.description || "-"}
                       </p>
-
                     </td>
 
                     {/* AUDITOR */}
 
                     <td className="overflow-hidden px-2.5 py-2.5">
-
                       <div className="flex min-w-0 items-center gap-1.5">
-
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[8px] font-semibold text-slate-600">
-
+                        <div
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[8px] font-semibold ${
+                            isDark
+                              ? "bg-slate-700 text-slate-300"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
                           {audit.auditor?.name
                             ? audit.auditor.name
                                 .split(" ")
                                 .map(
-                                  (name) =>
-                                    name[0]
+                                  (name) => name[0]
                                 )
                                 .join("")
                                 .slice(0, 2)
                                 .toUpperCase()
                             : "NA"}
-
                         </div>
 
                         <div className="min-w-0">
-
-                          <p className="truncate text-[10px] font-medium text-slate-700">
+                          <p
+                            className={`truncate text-[10px] font-medium ${
+                              isDark
+                                ? "text-slate-200"
+                                : "text-slate-700"
+                            }`}
+                          >
                             {audit.auditor?.name ||
                               "Not Assigned"}
                           </p>
 
-                          {audit.auditor
-                            ?.email && (
-                            <p className="truncate text-[8px] text-slate-400">
-                              {
-                                audit.auditor
-                                  .email
-                              }
+                          {audit.auditor?.email && (
+                            <p
+                              className={`truncate text-[8px] ${
+                                isDark
+                                  ? "text-slate-400"
+                                  : "text-slate-400"
+                              }`}
+                            >
+                              {audit.auditor.email}
                             </p>
                           )}
-
                         </div>
-
                       </div>
-
                     </td>
 
                     {/* STATUS */}
@@ -812,46 +1382,55 @@ export default function AuditsPage() {
                     {/* END DATE */}
 
                     <td className="overflow-hidden px-2.5 py-2.5">
-
-                      <span className="block truncate text-[9px] text-slate-600">
+                      <span
+                        className={`block truncate text-[9px] ${
+                          isDark
+                            ? "text-slate-300"
+                            : "text-slate-600"
+                        }`}
+                      >
                         {audit.endDate || "-"}
                       </span>
-
                     </td>
 
                     {/* ACTIONS */}
 
                     <td className="px-2 py-2.5">
-
                       <div className="flex items-center justify-end gap-1">
-
-                        {/* View */}
+                        {/* VIEW */}
 
                         <Link
                           href={`/dashboard/audits/${audit.id}`}
                           title="View Audit"
-                          className="inline-flex h-7 items-center justify-center rounded border border-slate-200 bg-white px-1.5 text-[9px] font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded border transition ${
+                            isDark
+                              ? "border-slate-600 bg-slate-700 text-slate-300 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-300"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                          }`}
                         >
-                          👁
+                          <EyeIcon />
                         </Link>
 
-                        {/* Edit */}
+                        {/* EDIT */}
 
                         <Link
                           href={`/dashboard/audits/${audit.id}/edit`}
                           title="Edit Audit"
-                          className="inline-flex h-7 items-center justify-center rounded border border-slate-200 bg-white px-1.5 text-[9px] font-semibold text-slate-600 transition hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded border transition ${
+                            isDark
+                              ? "border-slate-600 bg-slate-700 text-slate-300 hover:border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-300"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
+                          }`}
                         >
-                          ✏️
+                          <EditIcon />
                         </Link>
 
-                        {/* Delete */}
+                        {/* DELETE */}
 
                         <button
                           type="button"
                           disabled={
-                            deletingId ===
-                            audit.id
+                            deletingId === audit.id
                           }
                           onClick={() =>
                             handleDelete(
@@ -859,91 +1438,104 @@ export default function AuditsPage() {
                             )
                           }
                           title="Delete Audit"
-                          className="inline-flex h-7 items-center justify-center rounded border border-red-200 bg-white px-1.5 text-[9px] font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          className={`inline-flex h-7 w-7 items-center justify-center rounded border transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                            isDark
+                              ? "border-red-500/30 bg-slate-700 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                              : "border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+                          }`}
                         >
                           {deletingId ===
                           audit.id ? (
-                            <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-200 border-t-red-600" />
+                            <span
+                              className={`h-3 w-3 animate-spin rounded-full border-2 ${
+                                isDark
+                                  ? "border-red-300/30 border-t-red-300"
+                                  : "border-red-200 border-t-red-600"
+                              }`}
+                            />
                           ) : (
-                            "🗑"
+                            <TrashIcon />
                           )}
                         </button>
-
                       </div>
-
                     </td>
-
                   </tr>
-
                 ))
-
               ) : (
-
                 <tr>
-
                   <td
                     colSpan={6}
                     className="px-4 py-12 text-center"
                   >
-
-                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-base">
-                      🔍
+                    <div
+                      className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full ${
+                        isDark
+                          ? "bg-slate-700 text-slate-300"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <SearchIcon />
                     </div>
 
-                    <h3 className="mt-2 text-xs font-semibold text-slate-800">
+                    <h3
+                      className={`mt-2 text-xs font-semibold ${
+                        isDark
+                          ? "text-slate-100"
+                          : "text-slate-800"
+                      }`}
+                    >
                       No audits found
                     </h3>
 
-                    <p className="mt-1 text-[10px] text-slate-500">
+                    <p
+                      className={`mt-1 text-[10px] ${
+                        isDark
+                          ? "text-slate-400"
+                          : "text-slate-500"
+                      }`}
+                    >
                       Try changing your search
                       or filters.
                     </p>
 
                     <button
                       type="button"
-                      onClick={
-                        resetFilters
-                      }
+                      onClick={resetFilters}
                       className="mt-3 rounded-md bg-blue-600 px-3 py-1.5 text-[10px] font-semibold text-white transition hover:bg-blue-700"
                     >
                       Clear Filters
                     </button>
-
                   </td>
-
                 </tr>
-
               )}
-
             </tbody>
-
           </table>
-
         </div>
       </div>
 
-      {/* =====================================
+      {/* ==================================================
           FOOTER
-      ====================================== */}
+      ================================================== */}
 
-      <div className="mt-2.5 flex items-center justify-between text-[9px] text-slate-400">
-
+      <div
+        className={`mt-2.5 flex items-center justify-between text-[9px] ${
+          isDark
+            ? "text-slate-500"
+            : "text-slate-400"
+        }`}
+      >
         <p>
-          Showing{" "}
-          {filteredAudits.length} audit
+          Showing {filteredAudits.length} audit
           {filteredAudits.length !== 1
             ? "s"
             : ""}
         </p>
 
         <p className="hidden sm:block">
-          Manage audit records using the
-          actions above.
+          Manage audit records using the actions
+          above.
         </p>
-
       </div>
-
     </div>
   );
 }
-

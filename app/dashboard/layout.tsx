@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import Navbar from "../components/navbar";
+import { useTheme } from "../context/ThemeContext";
 
 const menuItems = [
   {
@@ -177,11 +178,56 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const { theme } = useTheme();
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
 
+  // =================================================
+  // AUTHENTICATION STATE
+  // =================================================
+
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // =================================================
+  // AUTH CHECK
+  // =================================================
+
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    console.log("Dashboard Auth Check");
+    console.log("Token:", token);
+
+    if (!token) {
+      console.log("No token → Redirecting to login");
+
+      setIsAuthenticated(false);
+      setCheckingAuth(false);
+
+      router.replace("/login");
+
+      return;
+    }
+
+    console.log("Token found → Dashboard allowed");
+
+    setIsAuthenticated(true);
+    setCheckingAuth(false);
+  }, [router]);
+
+  // =================================================
+  // USER DATA
+  // =================================================
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
     const storedName = localStorage.getItem("name");
     const storedRole = localStorage.getItem("role");
 
@@ -192,7 +238,11 @@ export default function DashboardLayout({
     if (storedRole) {
       setRole(storedRole);
     }
-  }, []);
+  }, [isAuthenticated]);
+
+  // =================================================
+  // INITIALS
+  // =================================================
 
   function getInitials(userName: string) {
     if (!userName) {
@@ -206,22 +256,29 @@ export default function DashboardLayout({
     }
 
     return (
-      words[0].charAt(0) +
-      words[words.length - 1].charAt(0)
+      words[0].charAt(0) + words[words.length - 1].charAt(0)
     ).toUpperCase();
   }
 
+  // =================================================
+  // MENU GROUPS
+  // =================================================
+
   const overviewItems = menuItems.filter(
-    (item) => item.section === "Overview"
+    (item) => item.section === "Overview",
   );
 
   const managementItems = menuItems.filter(
-    (item) => item.section === "Management"
+    (item) => item.section === "Management",
   );
 
   const communicationItems = menuItems.filter(
-    (item) => item.section === "Communication"
+    (item) => item.section === "Communication",
   );
+
+  // =================================================
+  // RENDER MENU
+  // =================================================
 
   function renderMenu(items: typeof menuItems) {
     return items.map((item) => {
@@ -236,7 +293,9 @@ export default function DashboardLayout({
           className={`group relative flex min-h-[42px] items-center gap-3 rounded-lg px-3 text-[12px] font-medium transition-all duration-200 ${
             isActive
               ? "bg-blue-600 text-white shadow-sm shadow-blue-950/20"
-              : "text-slate-400 hover:bg-slate-800/80 hover:text-white"
+              : theme === "dark"
+                ? "text-slate-400 hover:bg-slate-800/80 hover:text-white"
+                : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
           }`}
         >
           {/* Active Indicator */}
@@ -251,7 +310,9 @@ export default function DashboardLayout({
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition ${
               isActive
                 ? "bg-white/10 text-white"
-                : "text-slate-500 group-hover:bg-slate-700 group-hover:text-blue-400"
+                : theme === "dark"
+                  ? "text-slate-500 group-hover:bg-slate-700 group-hover:text-blue-400"
+                  : "text-slate-500 group-hover:bg-white group-hover:text-blue-600"
             }`}
           >
             {item.icon}
@@ -299,9 +360,34 @@ export default function DashboardLayout({
     });
   }
 
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-100">
+  // =================================================
+  // AUTH CHECKING
+  // =================================================
 
+  if (checkingAuth) {
+    return null;
+  }
+
+  // =================================================
+  // NOT AUTHENTICATED
+  // =================================================
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // =================================================
+  // DASHBOARD UI
+  // =================================================
+
+  return (
+    <div
+      className={`min-h-screen overflow-x-hidden transition-colors duration-300 ${
+        theme === "dark"
+          ? "bg-slate-900"
+          : "bg-slate-100"
+      }`}
+    >
       {/* ================================================= */}
       {/* NAVBAR */}
       {/* ================================================= */}
@@ -312,61 +398,83 @@ export default function DashboardLayout({
       {/* SIDEBAR */}
       {/* ================================================= */}
 
-      <aside className="fixed left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-[235px] flex-col overflow-hidden border-r border-slate-800 bg-slate-950 text-white">
-
+      <aside
+        className={`fixed left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-[235px] flex-col overflow-hidden border-r text-white transition-colors duration-300 ${
+          theme === "dark"
+            ? "border-slate-800 bg-slate-950"
+            : "border-slate-200 bg-white text-slate-900"
+        }`}
+      >
         {/* ================================================= */}
         {/* SIDEBAR BRAND */}
         {/* ================================================= */}
 
-        <div className="border-b border-slate-800 px-4">
+        <div
+          className={`border-b px-4 ${
+            theme === "dark"
+              ? "border-slate-800"
+              : "border-slate-200"
+          }`}
+        ></div>
 
-        
-
-        </div>
-
+        {/* ================================================= */}
+        {/* MENU */}
+        {/* ================================================= */}
 
         <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
 
           {/* Overview */}
 
           <div className="mb-5">
-
-            <p className="mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">
+            <p
+              className={`mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] ${
+                theme === "dark"
+                  ? "text-slate-600"
+                  : "text-slate-400"
+              }`}
+            >
               Overview
             </p>
 
             <div className="space-y-1">
               {renderMenu(overviewItems)}
             </div>
-
           </div>
 
           {/* Management */}
 
           <div className="mb-5">
-
-            <p className="mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">
+            <p
+              className={`mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] ${
+                theme === "dark"
+                  ? "text-slate-600"
+                  : "text-slate-400"
+              }`}
+            >
               Management
             </p>
 
             <div className="space-y-1">
               {renderMenu(managementItems)}
             </div>
-
           </div>
 
           {/* Communication */}
 
           <div>
-
-            <p className="mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-600">
+            <p
+              className={`mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] ${
+                theme === "dark"
+                  ? "text-slate-600"
+                  : "text-slate-400"
+              }`}
+            >
               Communication
             </p>
 
             <div className="space-y-1">
               {renderMenu(communicationItems)}
             </div>
-
           </div>
 
         </nav>
@@ -374,22 +482,21 @@ export default function DashboardLayout({
         {/* ================================================= */}
         {/* SIDEBAR FOOTER / USER */}
         {/* ================================================= */}
-
-        
-
-      
-
       </aside>
 
       {/* ================================================= */}
       {/* MAIN CONTENT */}
       {/* ================================================= */}
 
-      <main className="ml-[235px] min-h-screen overflow-x-hidden pt-16">
+      <main
+        className={`ml-[235px] min-h-screen overflow-x-hidden pt-16 transition-colors duration-300 ${
+          theme === "dark"
+            ? "bg-slate-900"
+            : "bg-slate-100"
+        }`}
+      >
         {children}
       </main>
-
     </div>
   );
 }
-

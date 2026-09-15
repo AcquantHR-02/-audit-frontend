@@ -468,12 +468,6 @@ export default function RegisterPage() {
                     Select your role
                   </option>
 
-                  <option
-                    value="ADMIN"
-                    className="bg-slate-900"
-                  >
-                    Admin
-                  </option>
 
                   <option
                     value="AUDITOR"

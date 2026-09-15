@@ -55,9 +55,7 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error("Login error:", error);
 
-      setError(
-        error.response?.data?.message || "Invalid email or password"
-      );
+      setError(error.response?.data?.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
@@ -70,7 +68,6 @@ export default function LoginPage() {
       <div className="absolute -bottom-32 -right-32 h-72 w-72 rounded-full bg-purple-600/20 blur-3xl" />
 
       <div className="relative z-10 grid w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl lg:grid-cols-2">
-
         {/* LEFT SIDE */}
         <section className="hidden flex-col justify-center bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-purple-600/20 p-8 lg:flex">
           {/* Logo */}
@@ -80,9 +77,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <h1 className="text-lg font-bold text-white">
-                Audit Management
-              </h1>
+              <h1 className="text-lg font-bold text-white">Audit Management</h1>
               <p className="text-xs text-slate-400">Enterprise System</p>
             </div>
           </div>
@@ -127,18 +122,14 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <h1 className="font-bold text-white">
-                Audit Management
-              </h1>
+              <h1 className="font-bold text-white">Audit Management</h1>
               <p className="text-xs text-slate-400">Enterprise System</p>
             </div>
           </div>
 
           {/* Heading */}
           <div>
-            <h2 className="text-2xl font-bold text-white">
-              Welcome back
-            </h2>
+            <h2 className="text-2xl font-bold text-white">Welcome back</h2>
 
             <p className="mt-1 text-sm text-slate-400">
               Sign in to continue to your dashboard
@@ -153,10 +144,7 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <form
-            onSubmit={submitHandle}
-            className="mt-5 space-y-4"
-          >
+          <form onSubmit={submitHandle} className="mt-5 space-y-4">
             {/* Email */}
             <div>
               <label
@@ -239,14 +227,12 @@ export default function LoginPage() {
               disabled={loading}
               className="group relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition duration-200 hover:-translate-y-0.5 hover:from-blue-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? (
+              {loading ?
                 <span className="flex items-center justify-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                   Logging in...
                 </span>
-              ) : (
-                "Sign in"
-              )}
+              : "Sign in"}
             </button>
 
             {/* Register */}

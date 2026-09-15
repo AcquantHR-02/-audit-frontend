@@ -55,7 +55,7 @@ const notifications = [
   },
 ];
 
-function getStatusClass(status) {
+function getStatusClass(status: string) {
   if (status === "Unread") {
     return "bg-blue-50 text-blue-700 border-blue-200";
   }
@@ -63,7 +63,7 @@ function getStatusClass(status) {
   return "bg-green-50 text-green-700 border-green-200";
 }
 
-function getEventClass(event) {
+function getEventClass(event: string) {
   if (event.includes("Finding")) {
     return "bg-purple-50 text-purple-700 border-purple-200";
   }
@@ -458,7 +458,7 @@ export default function NotificationsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-5 py-12 text-center">
+                  <td colSpan={6} className="px-5 py-12 text-center">
                     <div className="flex flex-col items-center">
                       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
                         <svg
