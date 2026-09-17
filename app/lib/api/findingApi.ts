@@ -1,8 +1,8 @@
 import baseApi from "./baseapi";
 
-// =========================
-// Finding
-// =========================
+// ======================================================
+// FINDING
+// ======================================================
 
 export interface Finding {
   id: number;
@@ -10,41 +10,72 @@ export interface Finding {
   description: string;
   severity: string;
   status: string;
+
   audit: {
     id: number;
     title?: string;
   } | null;
 }
 
-// =========================
-// Finding Request
-// =========================
+// ======================================================
+// FINDING REQUEST
+// ======================================================
 
 export interface FindingRequest {
   title: string;
   description: string;
   severity: string;
   status: string;
+
   audit: {
     id: number;
   } | null;
 }
 
-// =========================
-// Get All Findings
-// =========================
+// ======================================================
+// PAGINATION RESPONSE
+// ======================================================
 
-export const getAllFindings = async (): Promise<Finding[]> => {
-  const response = await baseApi.get<Finding[]>(
-    "/api/findings"
+export interface FindingPage {
+  content: Finding[];
+
+  totalElements: number;
+  totalPages: number;
+
+  size: number;
+  number: number;
+
+  first: boolean;
+  last: boolean;
+
+  numberOfElements: number;
+  empty: boolean;
+}
+
+// ======================================================
+// GET ALL FINDINGS
+// ======================================================
+
+export const getAllFindings = async (
+  page: number = 0,
+  size: number = 10
+): Promise<FindingPage> => {
+  const response = await baseApi.get<FindingPage>(
+    "/api/findings",
+    {
+      params: {
+        page,
+        size,
+      },
+    }
   );
 
   return response.data;
 };
 
-// =========================
-// Get Finding By ID
-// =========================
+// ======================================================
+// GET FINDING BY ID
+// ======================================================
 
 export const getFindingById = async (
   id: number
@@ -56,9 +87,9 @@ export const getFindingById = async (
   return response.data;
 };
 
-// =========================
-// Create Finding
-// =========================
+// ======================================================
+// CREATE FINDING
+// ======================================================
 
 export const createFinding = async (
   data: FindingRequest
@@ -71,9 +102,9 @@ export const createFinding = async (
   return response.data;
 };
 
-// =========================
-// Update Finding
-// =========================
+// ======================================================
+// UPDATE FINDING
+// ======================================================
 
 export const updateFinding = async (
   id: number,
@@ -87,9 +118,9 @@ export const updateFinding = async (
   return response.data;
 };
 
-// =========================
-// Delete Finding
-// =========================
+// ======================================================
+// DELETE FINDING
+// ======================================================
 
 export const deleteFinding = async (
   id: number
@@ -101,9 +132,9 @@ export const deleteFinding = async (
   return response.data;
 };
 
-// =========================
-// Get Findings By Status
-// =========================
+// ======================================================
+// GET FINDINGS BY STATUS
+// ======================================================
 
 export const getFindingsByStatus = async (
   status: string
@@ -115,9 +146,9 @@ export const getFindingsByStatus = async (
   return response.data;
 };
 
-// =========================
-// Get Findings By Severity
-// =========================
+// ======================================================
+// GET FINDINGS BY SEVERITY
+// ======================================================
 
 export const getFindingsBySeverity = async (
   severity: string

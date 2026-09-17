@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  getAuditById,
-  type Audit,
-} from "@/app/lib/api/auditApi";
+import { useParams } from "next/navigation";
 
+import type { Audit } from "@/app/lib/api/auditApi";
+import { getAllAudits } from "@/app/lib/api/auditApi";
 import { useTheme } from "@/app/context/ThemeContext";
 
 // ======================================================
@@ -18,16 +16,93 @@ import { useTheme } from "@/app/context/ThemeContext";
 function ArrowLeftIcon() {
   return (
     <svg
-      width="15"
-      height="15"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="m15 18-6-6 6-6" />
+      <path d="M19 12H5" />
+      <path d="m12 19-7-7 7-7" />
+    </svg>
+  );
+}
+
+function FileIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z" />
+      <path d="M14 3v6h6" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+      <path d="M7 3.5v3" />
+      <path d="M17 3.5v3" />
+      <path d="M3.5 9.5h17" />
+    </svg>
+  );
+}
+
+function UserIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c.8-3.4 3.1-5.2 7-5.2s6.2 1.8 7 5.2" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3 20 6v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-3Z" />
+      <path d="m9 12 2 2 4-4" />
     </svg>
   );
 }
@@ -50,83 +125,19 @@ function EditIcon() {
   );
 }
 
-function CalendarIcon() {
+function CheckIcon() {
   return (
     <svg
-      width="17"
-      height="17"
+      width="13"
+      height="13"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
-      <path d="M7 3.5v3" />
-      <path d="M17 3.5v3" />
-      <path d="M3.5 9.5h17" />
-      <path d="M8 13h.01" />
-      <path d="M12 13h.01" />
-      <path d="M16 13h.01" />
-      <path d="M8 16.5h.01" />
-      <path d="M12 16.5h.01" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg
-      width="17"
-      height="17"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="8" r="3.5" />
-      <path d="M5 20c.8-3.4 3.1-5.2 7-5.2s6.2 1.8 7 5.2" />
-    </svg>
-  );
-}
-
-function FileIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z" />
-      <path d="M14 3v6h6" />
-      <path d="M8 13h8" />
-      <path d="M8 17h5" />
-    </svg>
-  );
-}
-
-function CheckCircleIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8 12 2.7 2.7L16.5 9" />
+      <path d="m5 12 4 4L19 6" />
     </svg>
   );
 }
@@ -134,12 +145,12 @@ function CheckCircleIcon() {
 function ClockIcon() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="13"
+      height="13"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -161,102 +172,15 @@ function AlertIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="m10.3 4.7-7 12.6A2 2 0 0 0 5 20.3h14a2 2 0 0 0 1.7-3L13.7 4.7a2 2 0 0 0-3.4 0Z" />
+      <path d="M10.3 4.1 2.7 17.3A2 2 0 0 0 4.4 20h15.2a2 2 0 0 0 1.7-2.7L13.7 4.1a2 2 0 0 0-3.4 0Z" />
       <path d="M12 9v4" />
-      <path d="M12 16.5h.01" />
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 3 20 6v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-3Z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 6 12 12" />
-      <path d="m18 6-12 12" />
+      <path d="M12 17h.01" />
     </svg>
   );
 }
 
 // ======================================================
-// STATUS STYLE
-// ======================================================
-
-function getStatusStyle(
-  status: string,
-  isDark: boolean
-) {
-  switch (status) {
-    case "Completed":
-      return {
-        badge: isDark
-          ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
-          : "border-emerald-200 bg-emerald-50 text-emerald-700",
-        dot: "bg-emerald-500",
-        icon: <CheckCircleIcon />,
-        label: "Completed",
-      };
-
-    case "In Progress":
-      return {
-        badge: isDark
-          ? "border-blue-500/25 bg-blue-500/10 text-blue-300"
-          : "border-blue-200 bg-blue-50 text-blue-700",
-        dot: "bg-blue-500",
-        icon: <ClockIcon />,
-        label: "In Progress",
-      };
-
-    case "Pending":
-      return {
-        badge: isDark
-          ? "border-amber-500/25 bg-amber-500/10 text-amber-300"
-          : "border-amber-200 bg-amber-50 text-amber-700",
-        dot: "bg-amber-500",
-        icon: <ClockIcon />,
-        label: "Pending",
-      };
-
-    default:
-      return {
-        badge: isDark
-          ? "border-slate-600 bg-slate-700 text-slate-300"
-          : "border-slate-200 bg-slate-50 text-slate-700",
-        dot: "bg-slate-400",
-        icon: <ShieldIcon />,
-        label: status || "Unknown",
-      };
-  }
-}
-
-// ======================================================
-// FORMAT DATE
+// DATE FORMAT
 // ======================================================
 
 function formatDate(date: string) {
@@ -276,291 +200,312 @@ function formatDate(date: string) {
 }
 
 // ======================================================
-// PAGE
+// STATUS
+// ======================================================
+
+function getStatusStyle(status: string, isDark: boolean) {
+  switch (status) {
+    case "Completed":
+      return {
+        badge: isDark
+          ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+          : "border-emerald-200 bg-emerald-50 text-emerald-700",
+        dot: "bg-emerald-500",
+        icon: <CheckIcon />,
+      };
+
+    case "In Progress":
+      return {
+        badge: isDark
+          ? "border-blue-400/20 bg-blue-400/10 text-blue-300"
+          : "border-blue-200 bg-blue-50 text-blue-700",
+        dot: "bg-blue-500",
+        icon: <ClockIcon />,
+      };
+
+    case "Pending":
+      return {
+        badge: isDark
+          ? "border-amber-400/20 bg-amber-400/10 text-amber-300"
+          : "border-amber-200 bg-amber-50 text-amber-700",
+        dot: "bg-amber-500",
+        icon: <ClockIcon />,
+      };
+
+    default:
+      return {
+        badge: isDark
+          ? "border-slate-600 bg-slate-700/50 text-slate-300"
+          : "border-slate-200 bg-slate-50 text-slate-600",
+        dot: "bg-slate-400",
+        icon: <ShieldIcon size={13} />,
+      };
+  }
+}
+
+// ======================================================
+// INFO CARD
+// ======================================================
+
+function InfoCard({
+  icon,
+  label,
+  children,
+  isDark,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+  isDark: boolean;
+}) {
+  return (
+    <div
+      className={`border p-4 transition ${
+        isDark
+          ? "border-slate-700/80 bg-[#182235]"
+          : "border-slate-200 bg-white"
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
+            isDark
+              ? "bg-blue-500/10 text-blue-300"
+              : "bg-blue-50 text-blue-600"
+          }`}
+        >
+          {icon}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p
+            className={`text-[9px] font-bold uppercase tracking-[0.12em] ${
+              isDark ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
+            {label}
+          </p>
+
+          <div className="mt-1.5">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================
+// MAIN PAGE
 // ======================================================
 
 export default function AuditDetailsPage() {
   const params = useParams();
-  const router = useRouter();
-
   const { theme } = useTheme();
 
   const isDark = theme === "dark";
 
-  const [audit, setAudit] =
-    useState<Audit | null>(null);
+  const auditId = useMemo(() => {
+    const value = params?.id;
 
-  const [loading, setLoading] =
-    useState(true);
+    if (Array.isArray(value)) {
+      return Number(value[0]);
+    }
 
-  const [error, setError] =
-    useState("");
+    return Number(value);
+  }, [params]);
 
-  // ======================================================
+  const [audit, setAudit] = useState<Audit | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ====================================================
   // FETCH AUDIT
-  // ======================================================
+  // ====================================================
 
   useEffect(() => {
-    const fetchAudit = async () => {
+    let mounted = true;
+
+    async function fetchAudit() {
+      if (!auditId || Number.isNaN(auditId)) {
+        setError("Invalid audit ID.");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError("");
 
-        const id = Number(params.id);
+        /*
+         * We are using the existing audit API.
+         * This avoids requiring a new backend endpoint.
+         */
+        const response = await getAllAudits(0, 1000);
 
-        if (Number.isNaN(id)) {
-          setError("Invalid audit ID.");
+        const audits = response?.content ?? [];
+
+        const selectedAudit = audits.find(
+          (item: Audit) => Number(item.id) === auditId
+        );
+
+        if (!selectedAudit) {
+          setError(`Audit #${auditId} was not found.`);
+          setAudit(null);
           return;
         }
 
-        const data = await getAuditById(id);
+        if (mounted) {
+          setAudit(selectedAudit);
+        }
+      } catch (err) {
+        console.error("Failed to load audit:", err);
 
-        setAudit(data);
-      } catch (error: any) {
-        console.error(
-          "Error fetching audit:",
-          error
-        );
-
-        if (error.response?.status === 401) {
+        if (mounted) {
           setError(
-            "Unauthorized. Please login again."
-          );
-        } else if (
-          error.response?.status === 403
-        ) {
-          setError(
-            "You do not have permission to view this audit."
-          );
-        } else if (
-          error.response?.status === 404
-        ) {
-          setError(
-            "Audit not found. It may have been deleted."
-          );
-        } else if (
-          error.response?.data?.message
-        ) {
-          setError(
-            error.response.data.message
-          );
-        } else {
-          setError(
-            "Unable to load audit. Please check your backend connection."
+            "Unable to load audit details. Please check your session and backend."
           );
         }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    };
-
-    if (params.id) {
-      fetchAudit();
     }
-  }, [params.id]);
 
-  // ======================================================
+    fetchAudit();
+
+    return () => {
+      mounted = false;
+    };
+  }, [auditId]);
+
+  // ====================================================
+  // INITIALS
+  // ====================================================
+
+  const initials =
+    audit?.auditor?.name
+      ?.split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0))
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "AU";
+
+  // ====================================================
+  // STATUS
+  // ====================================================
+
+  const statusStyle = getStatusStyle(
+    audit?.status || "",
+    isDark
+  );
+
+  // ====================================================
   // LOADING
-  // ======================================================
+  // ====================================================
 
   if (loading) {
     return (
       <div
-        className={`min-h-screen p-4 md:p-5 ${
-          isDark
-            ? "bg-slate-900"
-            : "bg-slate-50"
+        className={`min-h-full p-4 sm:p-5 lg:p-6 ${
+          isDark ? "bg-[#0b1220]" : "bg-[#f5f7fb]"
         }`}
       >
-        <div className="mx-auto max-w-7xl">
-          <div className="animate-pulse">
+        <div className="mx-auto max-w-[1200px]">
+          <div
+            className={`mb-5 h-10 w-32 animate-pulse rounded-md ${
+              isDark ? "bg-slate-800" : "bg-slate-200"
+            }`}
+          />
+
+          <div
+            className={`h-36 animate-pulse rounded-lg border ${
+              isDark
+                ? "border-slate-800 bg-[#111a2e]"
+                : "border-slate-200 bg-white"
+            }`}
+          />
+
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div
-              className={`h-3 w-28 rounded ${
-                isDark
-                  ? "bg-slate-700"
-                  : "bg-slate-200"
+              className={`h-32 animate-pulse rounded-lg ${
+                isDark ? "bg-[#111a2e]" : "bg-white"
               }`}
             />
 
             <div
-              className={`mt-4 h-8 w-72 rounded ${
-                isDark
-                  ? "bg-slate-700"
-                  : "bg-slate-200"
+              className={`h-32 animate-pulse rounded-lg ${
+                isDark ? "bg-[#111a2e]" : "bg-white"
               }`}
             />
-
-            <div
-              className={`mt-2 h-3 w-96 max-w-full rounded ${
-                isDark
-                  ? "bg-slate-700"
-                  : "bg-slate-200"
-              }`}
-            />
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-              <div
-                className={`h-72 rounded-xl ${
-                  isDark
-                    ? "bg-slate-800"
-                    : "bg-white"
-                }`}
-              />
-
-              <div
-                className={`h-72 rounded-xl lg:col-span-2 ${
-                  isDark
-                    ? "bg-slate-800"
-                    : "bg-white"
-                }`}
-              />
-            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // ======================================================
+  // ====================================================
   // ERROR
-  // ======================================================
+  // ====================================================
 
-  if (error) {
+  if (error || !audit) {
     return (
       <div
-        className={`min-h-screen px-4 py-6 ${
-          isDark
-            ? "bg-slate-900"
-            : "bg-slate-50"
+        className={`min-h-full p-4 sm:p-5 lg:p-6 ${
+          isDark ? "bg-[#0b1220]" : "bg-[#f5f7fb]"
         }`}
       >
-        <div className="mx-auto flex min-h-[70vh] max-w-lg items-center justify-center">
-          <div
-            className={`w-full rounded-xl border p-7 text-center shadow-sm ${
+        <div className="mx-auto max-w-[1200px]">
+          <Link
+            href="/dashboard/audits"
+            className={`mb-5 inline-flex items-center gap-2 border px-3 py-2 text-[11px] font-semibold transition ${
               isDark
-                ? "border-slate-600 bg-slate-800"
+                ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:border-blue-500/40 hover:text-blue-300"
+                : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-600"
+            }`}
+          >
+            <ArrowLeftIcon />
+            Back to Audits
+          </Link>
+
+          <div
+            className={`flex min-h-[300px] flex-col items-center justify-center rounded-lg border text-center ${
+              isDark
+                ? "border-slate-700 bg-[#111a2e]"
                 : "border-slate-200 bg-white"
             }`}
           >
             <div
-              className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
+              className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${
                 isDark
-                  ? "bg-red-500/10 text-red-300"
+                  ? "bg-red-500/10 text-red-400"
                   : "bg-red-50 text-red-600"
               }`}
             >
               <AlertIcon />
             </div>
 
-            <h1
-              className={`mt-4 text-lg font-bold ${
-                isDark
-                  ? "text-slate-100"
-                  : "text-slate-900"
-              }`}
-            >
-              Unable to Load Audit
-            </h1>
-
-            <p
-              className={`mt-2 text-xs leading-5 ${
-                isDark
-                  ? "text-slate-400"
-                  : "text-slate-500"
-              }`}
-            >
-              {error}
-            </p>
-
-            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    "/dashboard/audits"
-                  )
-                }
-                className="rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
-              >
-                Back to Audits
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  window.location.reload()
-                }
-                className={`rounded-md border px-4 py-2 text-xs font-semibold transition ${
-                  isDark
-                    ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600"
-                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                Try Again
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ======================================================
-  // NOT FOUND
-  // ======================================================
-
-  if (!audit) {
-    return (
-      <div
-        className={`min-h-screen px-4 py-6 ${
-          isDark
-            ? "bg-slate-900"
-            : "bg-slate-50"
-        }`}
-      >
-        <div className="mx-auto flex min-h-[70vh] max-w-lg items-center justify-center">
-          <div
-            className={`w-full rounded-xl border p-7 text-center shadow-sm ${
-              isDark
-                ? "border-slate-600 bg-slate-800"
-                : "border-slate-200 bg-white"
-            }`}
-          >
-            <div
-              className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
-                isDark
-                  ? "bg-slate-700 text-slate-300"
-                  : "bg-slate-100 text-slate-500"
-              }`}
-            >
-              <FileIcon />
-            </div>
-
-            <h1
-              className={`mt-4 text-lg font-bold ${
-                isDark
-                  ? "text-slate-100"
-                  : "text-slate-900"
+            <h2
+              className={`text-base font-bold ${
+                isDark ? "text-slate-100" : "text-slate-900"
               }`}
             >
               Audit Not Found
-            </h1>
+            </h2>
 
             <p
-              className={`mt-2 text-xs ${
-                isDark
-                  ? "text-slate-400"
-                  : "text-slate-500"
+              className={`mt-2 max-w-md text-xs ${
+                isDark ? "text-slate-500" : "text-slate-500"
               }`}
             >
-              No audit information was found
-              for this ID.
+              {error || "The requested audit could not be found."}
             </p>
 
             <Link
               href="/dashboard/audits"
-              className="mt-5 inline-flex rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
+              className="mt-5 inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-blue-700"
             >
+              <ArrowLeftIcon />
               Back to Audits
             </Link>
           </div>
@@ -569,944 +514,489 @@ export default function AuditDetailsPage() {
     );
   }
 
-  // ======================================================
-  // STATUS
-  // ======================================================
-
-  const statusStyle = getStatusStyle(
-    audit.status || "",
-    isDark
-  );
-
-  // ======================================================
+  // ====================================================
   // MAIN UI
-  // ======================================================
+  // ====================================================
 
   return (
     <div
-      className={`min-h-screen overflow-x-hidden p-3 md:p-4 ${
-        isDark
-          ? "bg-slate-900"
-          : "bg-slate-50"
+      className={`min-h-full w-full overflow-x-hidden ${
+        isDark ? "bg-[#0b1220]" : "bg-[#f5f7fb]"
       }`}
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[1200px] p-4 sm:p-5 lg:p-6">
 
         {/* ==================================================
-            BREADCRUMB
+            TOP NAVIGATION
         ================================================== */}
 
-        <div className="mb-3 flex items-center gap-1.5 text-[10px]">
-          <Link
-            href="/dashboard"
-            className={`transition hover:text-blue-500 ${
-              isDark
-                ? "text-slate-400"
-                : "text-slate-500"
-            }`}
-          >
-            Dashboard
-          </Link>
-
-          <span
-            className={
-              isDark
-                ? "text-slate-600"
-                : "text-slate-300"
-            }
-          >
-            /
-          </span>
-
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/dashboard/audits"
-            className={`transition hover:text-blue-500 ${
+            className={`inline-flex w-fit items-center gap-2 border px-3 py-2 text-[11px] font-semibold transition ${
               isDark
-                ? "text-slate-400"
-                : "text-slate-500"
+                ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:border-blue-500/40 hover:bg-blue-500/5 hover:text-blue-300"
+                : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-600"
             }`}
           >
-            Audits
+            <ArrowLeftIcon />
+            Back to Audits
           </Link>
 
-          <span
-            className={
-              isDark
-                ? "text-slate-600"
-                : "text-slate-300"
-            }
-          >
-            /
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-[10px] ${
+                isDark ? "text-slate-500" : "text-slate-400"
+              }`}
+            >
+              Audit Management
+            </span>
 
-          <span
-            className={`font-medium ${
-              isDark
-                ? "text-slate-200"
-                : "text-slate-700"
-            }`}
-          >
-            Details
-          </span>
+            <span
+              className={
+                isDark ? "text-slate-700" : "text-slate-300"
+              }
+            >
+              /
+            </span>
+
+            <span
+              className={`text-[10px] font-semibold ${
+                isDark ? "text-slate-400" : "text-slate-500"
+              }`}
+            >
+              Audit Details
+            </span>
+          </div>
         </div>
 
         {/* ==================================================
-            HEADER
+            HEADER CARD
         ================================================== */}
 
-        <div
-          className={`mb-4 rounded-xl border p-4 shadow-sm md:p-5 ${
+        <section
+          className={`relative overflow-hidden rounded-lg border ${
             isDark
-              ? "border-slate-600 bg-slate-800"
+              ? "border-slate-700 bg-[#111a2e]"
               : "border-slate-200 bg-white"
           }`}
         >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          {/* TOP ACCENT */}
 
-            {/* LEFT */}
+          <div className="h-[3px] bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-500" />
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+          <div className="p-5 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-                <span
-                  className={`rounded-md px-2.5 py-1 text-[10px] font-bold tracking-wide ${
+              {/* LEFT */}
+
+              <div className="flex min-w-0 items-start gap-4">
+                <div
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border ${
                     isDark
-                      ? "bg-slate-700 text-slate-200"
-                      : "bg-slate-100 text-slate-600"
+                      ? "border-blue-400/10 bg-blue-500/10 text-blue-300"
+                      : "border-blue-100 bg-blue-50 text-blue-600"
                   }`}
                 >
-                  AUD-
-                  {String(audit.id).padStart(
-                    3,
-                    "0"
-                  )}
-                </span>
+                  <FileIcon size={22} />
+                </div>
 
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${statusStyle.badge}`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`}
-                  />
+                <div className="min-w-0">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className={`border px-2.5 py-1 text-[9px] font-bold tracking-wider ${
+                        isDark
+                          ? "border-slate-700 bg-slate-800 text-slate-300"
+                          : "border-slate-200 bg-slate-50 text-slate-600"
+                      }`}
+                    >
+                      AUD-{String(audit.id).padStart(3, "0")}
+                    </span>
 
-                  {statusStyle.label}
-                </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[9px] font-semibold ${statusStyle.badge}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`}
+                      />
+
+                      {audit.status || "Unknown"}
+                    </span>
+                  </div>
+
+                  <h1
+                    className={`break-words text-xl font-bold tracking-tight sm:text-2xl ${
+                      isDark ? "text-slate-100" : "text-slate-900"
+                    }`}
+                  >
+                    {audit.title || "Untitled Audit"}
+                  </h1>
+
+                  <p
+                    className={`mt-1.5 text-xs ${
+                      isDark ? "text-slate-500" : "text-slate-500"
+                    }`}
+                  >
+                    Audit record and operational details
+                  </p>
+                </div>
               </div>
 
-              <h1
-                className={`mt-2.5 truncate text-xl font-bold tracking-tight md:text-2xl ${
-                  isDark
-                    ? "text-slate-100"
-                    : "text-slate-900"
-                }`}
-                title={audit.title}
-              >
-                {audit.title}
-              </h1>
-
-              <p
-                className={`mt-1 text-[10px] md:text-xs ${
-                  isDark
-                    ? "text-slate-400"
-                    : "text-slate-500"
-                }`}
-              >
-                Complete information and details
-                for this compliance audit.
-              </p>
-            </div>
-
-            {/* ACTIONS */}
-
-            <div className="flex shrink-0 gap-2">
-              <Link
-                href="/dashboard/audits"
-                className={`inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-[10px] font-semibold transition ${
-                  isDark
-                    ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600"
-                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <ArrowLeftIcon />
-                All Audits
-              </Link>
+              {/* RIGHT */}
 
               <Link
                 href={`/dashboard/audits/${audit.id}/edit`}
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-[10px] font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                className="inline-flex w-fit items-center justify-center gap-2 bg-blue-600 px-4 py-2.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]"
               >
                 <EditIcon />
                 Edit Audit
               </Link>
             </div>
           </div>
+        </section>
+
+        {/* ==================================================
+            AUDIT INFORMATION
+        ================================================== */}
+
+        <section
+          className={`mt-4 overflow-hidden rounded-lg border ${
+            isDark
+              ? "border-slate-700 bg-[#111a2e]"
+              : "border-slate-200 bg-white"
+          }`}
+        >
+          <div
+            className={`flex items-center gap-3 border-b px-4 py-3 ${
+              isDark
+                ? "border-slate-700 bg-slate-800/40"
+                : "border-slate-200 bg-slate-50/70"
+            }`}
+          >
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-md ${
+                isDark
+                  ? "bg-blue-500/10 text-blue-300"
+                  : "bg-blue-50 text-blue-600"
+              }`}
+            >
+              <ShieldIcon size={16} />
+            </div>
+
+            <div>
+              <h2
+                className={`text-xs font-bold ${
+                  isDark ? "text-slate-200" : "text-slate-800"
+                }`}
+              >
+                Audit Information
+              </h2>
+
+              <p
+                className={`mt-0.5 text-[9px] ${
+                  isDark ? "text-slate-500" : "text-slate-400"
+                }`}
+              >
+                Core audit details
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2">
+
+            {/* ID */}
+
+            <div
+              className={`border-b p-4 md:border-r ${
+                isDark ? "border-slate-700" : "border-slate-200"
+              }`}
+            >
+              <p
+                className={`text-[9px] font-bold uppercase tracking-wider ${
+                  isDark ? "text-slate-500" : "text-slate-400"
+                }`}
+              >
+                Audit ID
+              </p>
+
+              <p
+                className={`mt-1.5 text-sm font-semibold ${
+                  isDark ? "text-slate-200" : "text-slate-800"
+                }`}
+              >
+                AUD-{String(audit.id).padStart(3, "0")}
+              </p>
+            </div>
+
+            {/* STATUS */}
+
+            <div
+              className={`border-b p-4 ${
+                isDark ? "border-slate-700" : "border-slate-200"
+              }`}
+            >
+              <p
+                className={`text-[9px] font-bold uppercase tracking-wider ${
+                  isDark ? "text-slate-500" : "text-slate-400"
+                }`}
+              >
+                Current Status
+              </p>
+
+              <span
+                className={`mt-1.5 inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-[10px] font-semibold ${statusStyle.badge}`}
+              >
+                {statusStyle.icon}
+                {audit.status || "Unknown"}
+              </span>
+            </div>
+
+            {/* TITLE */}
+
+            <div
+              className={`border-b p-4 md:col-span-2 ${
+                isDark ? "border-slate-700" : "border-slate-200"
+              }`}
+            >
+              <p
+                className={`text-[9px] font-bold uppercase tracking-wider ${
+                  isDark ? "text-slate-500" : "text-slate-400"
+                }`}
+              >
+                Audit Title
+              </p>
+
+              <p
+                className={`mt-1.5 text-sm font-semibold ${
+                  isDark ? "text-slate-100" : "text-slate-900"
+                }`}
+              >
+                {audit.title || "-"}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================================================
+            TIMELINE + AUDITOR
+        ================================================== */}
+
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+          {/* TIMELINE */}
+
+          <InfoCard
+            icon={<CalendarIcon />}
+            label="Audit Timeline"
+            isDark={isDark}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div
+                className={`border p-3 ${
+                  isDark
+                    ? "border-slate-700 bg-[#172235]"
+                    : "border-slate-200 bg-slate-50/70"
+                }`}
+              >
+                <p
+                  className={`text-[8px] font-bold uppercase tracking-wider ${
+                    isDark ? "text-slate-500" : "text-slate-400"
+                  }`}
+                >
+                  Start Date
+                </p>
+
+                <p
+                  className={`mt-1 text-[11px] font-bold ${
+                    isDark ? "text-slate-200" : "text-slate-800"
+                  }`}
+                >
+                  {formatDate(audit.startDate)}
+                </p>
+              </div>
+
+              <div
+                className={`border p-3 ${
+                  isDark
+                    ? "border-slate-700 bg-[#172235]"
+                    : "border-slate-200 bg-slate-50/70"
+                }`}
+              >
+                <p
+                  className={`text-[8px] font-bold uppercase tracking-wider ${
+                    isDark ? "text-slate-500" : "text-slate-400"
+                  }`}
+                >
+                  End Date
+                </p>
+
+                <p
+                  className={`mt-1 text-[11px] font-bold ${
+                    isDark ? "text-slate-200" : "text-slate-800"
+                  }`}
+                >
+                  {formatDate(audit.endDate)}
+                </p>
+              </div>
+            </div>
+          </InfoCard>
+
+          {/* AUDITOR */}
+
+          <InfoCard
+            icon={<UserIcon />}
+            label="Assigned Auditor"
+            isDark={isDark}
+          >
+            {audit.auditor ? (
+              <div className="flex items-center gap-3">
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                    isDark
+                      ? "bg-blue-500/15 text-blue-300 ring-1 ring-blue-400/10"
+                      : "bg-blue-50 text-blue-600 ring-1 ring-blue-100"
+                  }`}
+                >
+                  {initials}
+                </div>
+
+                <div className="min-w-0">
+                  <p
+                    className={`truncate text-[12px] font-bold ${
+                      isDark ? "text-slate-100" : "text-slate-900"
+                    }`}
+                  >
+                    {audit.auditor.name || "Unknown Auditor"}
+                  </p>
+
+                  <p
+                    className={`mt-1 truncate text-[10px] ${
+                      isDark ? "text-slate-500" : "text-slate-400"
+                    }`}
+                  >
+                    {audit.auditor.email || "No email available"}
+                  </p>
+
+                  {audit.auditor.role?.name && (
+                    <span
+                      className={`mt-1.5 inline-block text-[9px] font-medium ${
+                        isDark ? "text-blue-300" : "text-blue-600"
+                      }`}
+                    >
+                      {audit.auditor.role.name}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`flex items-center gap-2 border border-dashed px-3 py-3 ${
+                  isDark
+                    ? "border-slate-700 text-slate-500"
+                    : "border-slate-200 text-slate-400"
+                }`}
+              >
+                <UserIcon size={15} />
+
+                <span className="text-[10px] font-medium">
+                  No auditor assigned
+                </span>
+              </div>
+            )}
+          </InfoCard>
         </div>
 
         {/* ==================================================
-            MAIN GRID
+            DESCRIPTION
         ================================================== */}
 
-        <div className="grid gap-4 lg:grid-cols-3">
-
-          {/* ==================================================
-              LEFT CONTENT
-          ================================================== */}
-
-          <div className="space-y-4 lg:col-span-2">
-
-            {/* ==================================================
-                AUDIT OVERVIEW
-            ================================================== */}
-
+        <section
+          className={`mt-4 overflow-hidden rounded-lg border ${
+            isDark
+              ? "border-slate-700 bg-[#111a2e]"
+              : "border-slate-200 bg-white"
+          }`}
+        >
+          <div
+            className={`flex items-center gap-3 border-b px-4 py-3 ${
+              isDark
+                ? "border-slate-700 bg-slate-800/40"
+                : "border-slate-200 bg-slate-50/70"
+            }`}
+          >
             <div
-              className={`overflow-hidden rounded-xl border shadow-sm ${
+              className={`flex h-8 w-8 items-center justify-center rounded-md ${
                 isDark
-                  ? "border-slate-600 bg-slate-800"
-                  : "border-slate-200 bg-white"
+                  ? "bg-blue-500/10 text-blue-300"
+                  : "bg-blue-50 text-blue-600"
               }`}
             >
-              <div
-                className={`border-b px-4 py-3.5 ${
-                  isDark
-                    ? "border-slate-600"
-                    : "border-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      isDark
-                        ? "bg-blue-500/10 text-blue-300"
-                        : "bg-blue-50 text-blue-600"
-                    }`}
-                  >
-                    <FileIcon />
-                  </div>
-
-                  <div>
-                    <h2
-                      className={`text-sm font-bold ${
-                        isDark
-                          ? "text-slate-100"
-                          : "text-slate-900"
-                      }`}
-                    >
-                      Audit Overview
-                    </h2>
-
-                    <p
-                      className={`mt-0.5 text-[10px] ${
-                        isDark
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      Basic information about
-                      the audit.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2">
-
-                {/* AUDIT ID */}
-
-                <div
-                  className={`p-4 ${
-                    isDark
-                      ? "border-b border-slate-600 sm:border-r"
-                      : "border-b border-slate-100 sm:border-r"
-                  }`}
-                >
-                  <p
-                    className={`text-[9px] font-semibold uppercase tracking-wider ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    Audit ID
-                  </p>
-
-                  <p
-                    className={`mt-1.5 text-sm font-bold ${
-                      isDark
-                        ? "text-slate-100"
-                        : "text-slate-900"
-                    }`}
-                  >
-                    AUD-
-                    {String(audit.id).padStart(
-                      3,
-                      "0"
-                    )}
-                  </p>
-                </div>
-
-                {/* STATUS */}
-
-                <div
-                  className={`p-4 ${
-                    isDark
-                      ? "border-b border-slate-600"
-                      : "border-b border-slate-100"
-                  }`}
-                >
-                  <p
-                    className={`text-[9px] font-semibold uppercase tracking-wider ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    Current Status
-                  </p>
-
-                  <span
-                    className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-semibold ${statusStyle.badge}`}
-                  >
-                    {statusStyle.icon}
-                    {statusStyle.label}
-                  </span>
-                </div>
-
-                {/* TITLE */}
-
-                <div className="p-4 sm:col-span-2">
-                  <p
-                    className={`text-[9px] font-semibold uppercase tracking-wider ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    Audit Title
-                  </p>
-
-                  <p
-                    className={`mt-1.5 text-sm font-semibold ${
-                      isDark
-                        ? "text-slate-100"
-                        : "text-slate-900"
-                    }`}
-                  >
-                    {audit.title || "-"}
-                  </p>
-                </div>
-              </div>
+              <FileIcon size={16} />
             </div>
 
-            {/* ==================================================
-                DESCRIPTION
-            ================================================== */}
-
-            <div
-              className={`rounded-xl border shadow-sm ${
-                isDark
-                  ? "border-slate-600 bg-slate-800"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <div
-                className={`border-b px-4 py-3.5 ${
-                  isDark
-                    ? "border-slate-600"
-                    : "border-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      isDark
-                        ? "bg-violet-500/10 text-violet-300"
-                        : "bg-violet-50 text-violet-600"
-                    }`}
-                  >
-                    <FileIcon />
-                  </div>
-
-                  <div>
-                    <h2
-                      className={`text-sm font-bold ${
-                        isDark
-                          ? "text-slate-100"
-                          : "text-slate-900"
-                      }`}
-                    >
-                      Audit Description
-                    </h2>
-
-                    <p
-                      className={`mt-0.5 text-[10px] ${
-                        isDark
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      Description and scope of
-                      the audit.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <div
-                  className={`rounded-lg border p-4 ${
-                    isDark
-                      ? "border-slate-600 bg-slate-700/50"
-                      : "border-slate-100 bg-slate-50"
-                  }`}
-                >
-                  <p
-                    className={`whitespace-pre-wrap text-xs leading-6 ${
-                      isDark
-                        ? "text-slate-300"
-                        : "text-slate-600"
-                    }`}
-                  >
-                    {audit.description ||
-                      "No description has been provided."}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ==================================================
-                TIMELINE
-            ================================================== */}
-
-            <div
-              className={`rounded-xl border shadow-sm ${
-                isDark
-                  ? "border-slate-600 bg-slate-800"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <div
-                className={`border-b px-4 py-3.5 ${
-                  isDark
-                    ? "border-slate-600"
-                    : "border-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      isDark
-                        ? "bg-amber-500/10 text-amber-300"
-                        : "bg-amber-50 text-amber-600"
-                    }`}
-                  >
-                    <CalendarIcon />
-                  </div>
-
-                  <div>
-                    <h2
-                      className={`text-sm font-bold ${
-                        isDark
-                          ? "text-slate-100"
-                          : "text-slate-900"
-                      }`}
-                    >
-                      Audit Timeline
-                    </h2>
-
-                    <p
-                      className={`mt-0.5 text-[10px] ${
-                        isDark
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      Scheduled audit period.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-3 p-4 sm:grid-cols-2">
-
-                {/* START DATE */}
-
-                <div
-                  className={`rounded-lg border p-3.5 ${
-                    isDark
-                      ? "border-slate-600 bg-slate-700/40"
-                      : "border-slate-200 bg-slate-50/60"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                        isDark
-                          ? "bg-blue-500/10 text-blue-300"
-                          : "bg-blue-50 text-blue-600"
-                      }`}
-                    >
-                      <CalendarIcon />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p
-                        className={`text-[9px] font-semibold uppercase tracking-wide ${
-                          isDark
-                            ? "text-slate-400"
-                            : "text-slate-400"
-                        }`}
-                      >
-                        Start Date
-                      </p>
-
-                      <p
-                        className={`mt-1 text-xs font-bold ${
-                          isDark
-                            ? "text-slate-100"
-                            : "text-slate-900"
-                        }`}
-                      >
-                        {formatDate(
-                          audit.startDate
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* END DATE */}
-
-                <div
-                  className={`rounded-lg border p-3.5 ${
-                    isDark
-                      ? "border-slate-600 bg-slate-700/40"
-                      : "border-slate-200 bg-slate-50/60"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                        isDark
-                          ? "bg-emerald-500/10 text-emerald-300"
-                          : "bg-emerald-50 text-emerald-600"
-                      }`}
-                    >
-                      <CalendarIcon />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p
-                        className={`text-[9px] font-semibold uppercase tracking-wide ${
-                          isDark
-                            ? "text-slate-400"
-                            : "text-slate-400"
-                        }`}
-                      >
-                        End Date
-                      </p>
-
-                      <p
-                        className={`mt-1 text-xs font-bold ${
-                          isDark
-                            ? "text-slate-100"
-                            : "text-slate-900"
-                        }`}
-                      >
-                        {formatDate(
-                          audit.endDate
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ==================================================
-              RIGHT SIDEBAR
-          ================================================== */}
-
-          <div className="space-y-4">
-
-            {/* ==================================================
-                AUDITOR
-            ================================================== */}
-
-            <div
-              className={`rounded-xl border shadow-sm ${
-                isDark
-                  ? "border-slate-600 bg-slate-800"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <div
-                className={`border-b px-4 py-3.5 ${
-                  isDark
-                    ? "border-slate-600"
-                    : "border-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      isDark
-                        ? "bg-cyan-500/10 text-cyan-300"
-                        : "bg-cyan-50 text-cyan-600"
-                    }`}
-                  >
-                    <UserIcon />
-                  </div>
-
-                  <div>
-                    <h2
-                      className={`text-sm font-bold ${
-                        isDark
-                          ? "text-slate-100"
-                          : "text-slate-900"
-                      }`}
-                    >
-                      Auditor
-                    </h2>
-
-                    <p
-                      className={`mt-0.5 text-[10px] ${
-                        isDark
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      Assigned auditor information.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4">
-                {audit.auditor ? (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                          isDark
-                            ? "bg-blue-500/15 text-blue-300"
-                            : "bg-blue-50 text-blue-600"
-                        }`}
-                      >
-                        {audit.auditor.name
-                          ?.charAt(0)
-                          .toUpperCase() ||
-                          "A"}
-                      </div>
-
-                      <div className="min-w-0">
-                        <p
-                          className={`truncate text-xs font-bold ${
-                            isDark
-                              ? "text-slate-100"
-                              : "text-slate-900"
-                          }`}
-                        >
-                          {audit.auditor.name}
-                        </p>
-
-                        <p
-                          className={`mt-0.5 truncate text-[10px] ${
-                            isDark
-                              ? "text-slate-400"
-                              : "text-slate-500"
-                          }`}
-                        >
-                          {audit.auditor.email ||
-                            "-"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {audit.auditor.role?.name && (
-                      <div
-                        className={`mt-4 border-t pt-3 ${
-                          isDark
-                            ? "border-slate-600"
-                            : "border-slate-100"
-                        }`}
-                      >
-                        <p
-                          className={`text-[9px] font-semibold uppercase tracking-wide ${
-                            isDark
-                              ? "text-slate-400"
-                              : "text-slate-400"
-                          }`}
-                        >
-                          Role
-                        </p>
-
-                        <p
-                          className={`mt-1.5 text-xs font-semibold ${
-                            isDark
-                              ? "text-slate-200"
-                              : "text-slate-800"
-                          }`}
-                        >
-                          {audit.auditor.role.name}
-                        </p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div
-                    className={`rounded-lg border border-dashed p-5 text-center ${
-                      isDark
-                        ? "border-slate-600 bg-slate-700/40"
-                        : "border-slate-300 bg-slate-50"
-                    }`}
-                  >
-                    <div
-                      className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full ${
-                        isDark
-                          ? "bg-slate-700 text-slate-400"
-                          : "bg-slate-200 text-slate-500"
-                      }`}
-                    >
-                      <UserIcon />
-                    </div>
-
-                    <p
-                      className={`mt-3 text-xs font-semibold ${
-                        isDark
-                          ? "text-slate-200"
-                          : "text-slate-700"
-                      }`}
-                    >
-                      No Auditor Assigned
-                    </p>
-
-                    <p
-                      className={`mt-1 text-[10px] leading-5 ${
-                        isDark
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      This audit currently has
-                      no assigned auditor.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ==================================================
-                QUICK SUMMARY
-            ================================================== */}
-
-            <div
-              className={`rounded-xl border shadow-sm ${
-                isDark
-                  ? "border-slate-600 bg-slate-800"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <div
-                className={`border-b px-4 py-3.5 ${
-                  isDark
-                    ? "border-slate-600"
-                    : "border-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      isDark
-                        ? "bg-violet-500/10 text-violet-300"
-                        : "bg-violet-50 text-violet-600"
-                    }`}
-                  >
-                    <ShieldIcon />
-                  </div>
-
-                  <div>
-                    <h2
-                      className={`text-sm font-bold ${
-                        isDark
-                          ? "text-slate-100"
-                          : "text-slate-900"
-                      }`}
-                    >
-                      Quick Summary
-                    </h2>
-
-                    <p
-                      className={`mt-0.5 text-[10px] ${
-                        isDark
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      Key audit information.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className={`divide-y ${
-                  isDark
-                    ? "divide-slate-600"
-                    : "divide-slate-100"
-                }`}
-              >
-                {/* STATUS */}
-
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span
-                    className={`text-[10px] ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    Status
-                  </span>
-
-                  <span
-                    className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${statusStyle.badge}`}
-                  >
-                    {statusStyle.label}
-                  </span>
-                </div>
-
-                {/* ID */}
-
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span
-                    className={`text-[10px] ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    Audit ID
-                  </span>
-
-                  <span
-                    className={`text-[10px] font-semibold ${
-                      isDark
-                        ? "text-slate-200"
-                        : "text-slate-800"
-                    }`}
-                  >
-                    #{audit.id}
-                  </span>
-                </div>
-
-                {/* START */}
-
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span
-                    className={`text-[10px] ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    Start Date
-                  </span>
-
-                  <span
-                    className={`text-[10px] font-semibold ${
-                      isDark
-                        ? "text-slate-200"
-                        : "text-slate-800"
-                    }`}
-                  >
-                    {formatDate(
-                      audit.startDate
-                    )}
-                  </span>
-                </div>
-
-                {/* END */}
-
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span
-                    className={`text-[10px] ${
-                      isDark
-                        ? "text-slate-400"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    End Date
-                  </span>
-
-                  <span
-                    className={`text-[10px] font-semibold ${
-                      isDark
-                        ? "text-slate-200"
-                        : "text-slate-800"
-                    }`}
-                  >
-                    {formatDate(
-                      audit.endDate
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* ==================================================
-                ACTIONS
-            ================================================== */}
-
-            <div
-              className={`rounded-xl border p-4 shadow-sm ${
-                isDark
-                  ? "border-slate-600 bg-slate-800"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <p
+            <div>
+              <h2
                 className={`text-xs font-bold ${
-                  isDark
-                    ? "text-slate-100"
-                    : "text-slate-900"
+                  isDark ? "text-slate-200" : "text-slate-800"
                 }`}
               >
-                Audit Actions
-              </p>
+                Description
+              </h2>
 
               <p
-                className={`mt-1 text-[10px] leading-5 ${
-                  isDark
-                    ? "text-slate-400"
-                    : "text-slate-500"
+                className={`mt-0.5 text-[9px] ${
+                  isDark ? "text-slate-500" : "text-slate-400"
                 }`}
               >
-                Manage this audit using the
-                available actions.
+                Audit scope and details
               </p>
-
-              <Link
-                href={`/dashboard/audits/${audit.id}/edit`}
-                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-[10px] font-semibold text-white transition hover:bg-blue-700"
-              >
-                <EditIcon />
-                Edit This Audit
-              </Link>
-
-              <Link
-                href="/dashboard/audits"
-                className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-[10px] font-semibold transition ${
-                  isDark
-                    ? "border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600"
-                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <ArrowLeftIcon />
-                Back to Audit List
-              </Link>
             </div>
           </div>
+
+          <div className="p-4">
+            <div
+              className={`min-h-[120px] border p-4 ${
+                isDark
+                  ? "border-slate-700 bg-[#172235]"
+                  : "border-slate-200 bg-slate-50/70"
+              }`}
+            >
+              <p
+                className={`whitespace-pre-wrap text-[11px] leading-6 ${
+                  isDark ? "text-slate-300" : "text-slate-600"
+                }`}
+              >
+                {audit.description ||
+                  "No description has been provided for this audit."}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================================================
+            BOTTOM ACTIONS
+        ================================================== */}
+
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Link
+            href="/dashboard/audits"
+            className={`inline-flex items-center justify-center gap-2 border px-4 py-2.5 text-[11px] font-semibold transition ${
+              isDark
+                ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:bg-slate-800"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            <ArrowLeftIcon />
+            Back to Audits
+          </Link>
+
+          <Link
+            href={`/dashboard/audits/${audit.id}/edit`}
+            className="inline-flex items-center justify-center gap-2 bg-blue-600 px-4 py-2.5 text-[11px] font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98]"
+          >
+            <EditIcon />
+            Edit Audit
+          </Link>
         </div>
       </div>
     </div>

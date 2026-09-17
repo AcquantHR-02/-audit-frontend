@@ -7,11 +7,16 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import { useTheme } from "../context/ThemeContext";
 
+// =========================================================
+// MENU ITEMS
+// =========================================================
+
 const menuItems = [
   {
     name: "Dashboard",
     href: "/dashboard",
     section: "Overview",
+
     icon: (
       <svg
         className="h-[18px] w-[18px]"
@@ -33,6 +38,7 @@ const menuItems = [
     name: "Audits",
     href: "/dashboard/audits",
     section: "Management",
+
     icon: (
       <svg
         className="h-[18px] w-[18px]"
@@ -46,6 +52,7 @@ const menuItems = [
           strokeWidth="1.7"
           d="M9 5h6M9 3h6a2 2 0 012 2v1h1a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h1V5a2 2 0 012-2z"
         />
+
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -60,6 +67,7 @@ const menuItems = [
     name: "Compliance",
     href: "/dashboard/compliance",
     section: "Management",
+
     icon: (
       <svg
         className="h-[18px] w-[18px]"
@@ -73,6 +81,7 @@ const menuItems = [
           strokeWidth="1.7"
           d="M9 12l2 2 4-4"
         />
+
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -87,6 +96,7 @@ const menuItems = [
     name: "Findings",
     href: "/dashboard/finding",
     section: "Management",
+
     icon: (
       <svg
         className="h-[18px] w-[18px]"
@@ -100,17 +110,19 @@ const menuItems = [
           strokeWidth="1.7"
           d="M12 9v4"
         />
+
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.7"
           d="M12 17h.01"
         />
+
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.7"
-          d="M10.3 3.8L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"
+          d="M10.3 3.8L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7 3L13.7 3.8a2 2 0 00-3.4 0z"
         />
       </svg>
     ),
@@ -121,6 +133,7 @@ const menuItems = [
     href: "/dashboard/notification",
     section: "Communication",
     badge: "3",
+
     icon: (
       <svg
         className="h-[18px] w-[18px]"
@@ -134,6 +147,7 @@ const menuItems = [
           strokeWidth="1.7"
           d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
         />
+
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -148,6 +162,7 @@ const menuItems = [
     name: "Reports",
     href: "/dashboard/reports",
     section: "Communication",
+
     icon: (
       <svg
         className="h-[18px] w-[18px]"
@@ -161,6 +176,7 @@ const menuItems = [
           strokeWidth="1.7"
           d="M4 19V5a2 2 0 012-2h12a2 2 0 012 2v14"
         />
+
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -172,6 +188,10 @@ const menuItems = [
   },
 ];
 
+// =========================================================
+// COMPONENT
+// =========================================================
+
 export default function DashboardLayout({
   children,
 }: {
@@ -182,29 +202,34 @@ export default function DashboardLayout({
 
   const { theme } = useTheme();
 
+  // =======================================================
+  // USER STATE
+  // =======================================================
+
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
 
-  // =================================================
-  // AUTHENTICATION STATE
-  // =================================================
+  // =======================================================
+  // SIDEBAR STATE
+  // =======================================================
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // =======================================================
+  // AUTH STATE
+  // =======================================================
 
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // =================================================
+  // =======================================================
   // AUTH CHECK
-  // =================================================
+  // =======================================================
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    console.log("Dashboard Auth Check");
-    console.log("Token:", token);
-
     if (!token) {
-      console.log("No token → Redirecting to login");
-
       setIsAuthenticated(false);
       setCheckingAuth(false);
 
@@ -213,15 +238,13 @@ export default function DashboardLayout({
       return;
     }
 
-    console.log("Token found → Dashboard allowed");
-
     setIsAuthenticated(true);
     setCheckingAuth(false);
   }, [router]);
 
-  // =================================================
-  // USER DATA
-  // =================================================
+  // =======================================================
+  // LOAD USER DATA
+  // =======================================================
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -240,9 +263,9 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated]);
 
-  // =================================================
-  // INITIALS
-  // =================================================
+  // =======================================================
+  // USER INITIALS
+  // =======================================================
 
   function getInitials(userName: string) {
     if (!userName) {
@@ -260,13 +283,11 @@ export default function DashboardLayout({
     ).toUpperCase();
   }
 
-  // =================================================
+  // =======================================================
   // MENU GROUPS
-  // =================================================
+  // =======================================================
 
-  const overviewItems = menuItems.filter(
-    (item) => item.section === "Overview",
-  );
+  const overviewItems = menuItems.filter((item) => item.section === "Overview");
 
   const managementItems = menuItems.filter(
     (item) => item.section === "Management",
@@ -276,73 +297,94 @@ export default function DashboardLayout({
     (item) => item.section === "Communication",
   );
 
-  // =================================================
-  // RENDER MENU
-  // =================================================
+  // =======================================================
+  // MENU RENDER FUNCTION
+  // =======================================================
 
   function renderMenu(items: typeof menuItems) {
     return items.map((item) => {
       const isActive =
-        pathname === item.href ||
-        pathname.startsWith(`${item.href}/`);
+        pathname === item.href || pathname.startsWith(`${item.href}/`);
 
       return (
         <Link
           key={item.href}
           href={item.href}
-          className={`group relative flex min-h-[42px] items-center gap-3 rounded-lg px-3 text-[12px] font-medium transition-all duration-200 ${
-            isActive
-              ? "bg-blue-600 text-white shadow-sm shadow-blue-950/20"
-              : theme === "dark"
-                ? "text-slate-400 hover:bg-slate-800/80 hover:text-white"
-                : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+          title={!sidebarOpen ? item.name : undefined}
+          onClick={() => {
+            if (window.innerWidth < 1024) {
+              setSidebarOpen(false);
+            }
+          }}
+          className={`group relative flex h-11 items-center rounded-xl transition-all duration-200 ${
+            sidebarOpen ? "gap-3 px-3" : "justify-center px-0"
+          } ${
+            isActive ?
+              theme === "dark" ?
+                "bg-blue-500/10 text-blue-400"
+              : "bg-white/90 text-blue-700 shadow-sm"
+            : theme === "dark" ?
+              "text-slate-400 hover:bg-slate-800/80 hover:text-slate-100"
+            : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
           }`}
         >
-          {/* Active Indicator */}
+          {/* ACTIVE INDICATOR */}
 
           {isActive && (
-            <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-white" />
+            <span
+              className={`absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full ${
+                theme === "dark" ? "bg-blue-500" : "bg-blue-600"
+              }`}
+            />
           )}
 
-          {/* Icon */}
+          {/* ICON */}
 
           <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition ${
-              isActive
-                ? "bg-white/10 text-white"
-                : theme === "dark"
-                  ? "text-slate-500 group-hover:bg-slate-700 group-hover:text-blue-400"
-                  : "text-slate-500 group-hover:bg-white group-hover:text-blue-600"
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200 ${
+              isActive ?
+                theme === "dark" ?
+                  "bg-blue-500/10 text-blue-400"
+                : "bg-white text-blue-700 shadow-sm"
+              : theme === "dark" ?
+                "text-slate-500 group-hover:bg-slate-700 group-hover:text-blue-400"
+              : "text-slate-500 group-hover:bg-white group-hover:text-blue-600 group-hover:shadow-sm"
             }`}
           >
             {item.icon}
           </span>
 
-          {/* Name */}
+          {/* MENU LABEL */}
 
-          <span className="min-w-0 flex-1 truncate">
+          <span
+            className={`min-w-0 flex-1 truncate whitespace-nowrap text-[12px] font-medium transition-all duration-200 ${
+              sidebarOpen ?
+                "translate-x-0 opacity-100"
+              : "pointer-events-none absolute left-14 -translate-x-2 opacity-0"
+            }`}
+          >
             {item.name}
           </span>
 
-          {/* Badge */}
+          {/* NOTIFICATION BADGE */}
 
           {item.badge && (
             <span
-              className={`flex min-w-[20px] items-center justify-center rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
-                isActive
-                  ? "bg-white text-blue-600"
-                  : "bg-blue-600 text-white"
+              className={`flex items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white transition-all duration-200 ${
+                sidebarOpen ?
+                  "min-w-[20px] px-1.5 py-0.5"
+                : "absolute right-1 top-1 min-w-[15px] px-1 py-0.5"
               }`}
             >
               {item.badge}
             </span>
           )}
 
-          {/* Active Arrow */}
+          {/* ACTIVE ARROW */}
 
-          {isActive && !item.badge && (
+          {isActive && sidebarOpen && !item.badge && (
             <svg
-              className="h-3.5 w-3.5 shrink-0 text-white/70"
+              className="h-3.5 w-3.5 shrink-0 opacity-50"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -360,143 +402,322 @@ export default function DashboardLayout({
     });
   }
 
-  // =================================================
-  // AUTH CHECKING
-  // =================================================
+  // =======================================================
+  // AUTH LOADING
+  // =======================================================
 
   if (checkingAuth) {
     return null;
   }
 
-  // =================================================
-  // NOT AUTHENTICATED
-  // =================================================
-
   if (!isAuthenticated) {
     return null;
   }
 
-  // =================================================
-  // DASHBOARD UI
-  // =================================================
+  // =======================================================
+  // LAYOUT
+  // =======================================================
 
   return (
     <div
       className={`min-h-screen overflow-x-hidden transition-colors duration-300 ${
-        theme === "dark"
-          ? "bg-slate-900"
-          : "bg-slate-100"
+        theme === "dark" ? "bg-slate-900" : "bg-[#f4f7fb]"
       }`}
     >
-      {/* ================================================= */}
-      {/* NAVBAR */}
-      {/* ================================================= */}
+      {/* ===================================================
+          NAVBAR
+      =================================================== */}
 
       <Navbar />
 
-      {/* ================================================= */}
-      {/* SIDEBAR */}
-      {/* ================================================= */}
+      {/* ===================================================
+          MOBILE BACKDROP
+      =================================================== */}
+
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 top-16 z-30 bg-slate-950/30 backdrop-blur-[1px] lg:hidden"
+        />
+      )}
+
+      {/* ===================================================
+          SIDEBAR
+      =================================================== */}
 
       <aside
-        className={`fixed left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-[235px] flex-col overflow-hidden border-r text-white transition-colors duration-300 ${
-          theme === "dark"
-            ? "border-slate-800 bg-slate-950"
-            : "border-slate-200 bg-white text-slate-900"
+        onMouseEnter={() => setSidebarOpen(true)}
+        onMouseLeave={() => setSidebarOpen(false)}
+        className={`fixed left-0 top-16 z-40 flex h-[calc(100vh-4rem)] flex-col border-r transition-all duration-300 ease-out ${
+          sidebarOpen ? "w-[235px]" : "w-[64px]"
+        } ${
+          theme === "dark" ?
+            "border-slate-800 bg-[#172033]"
+          : "border-[#d8e3f2] bg-gradient-to-b from-[#eaf2ff] via-[#f0f5fc] to-[#f6f8fc]"
         }`}
       >
-        {/* ================================================= */}
-        {/* SIDEBAR BRAND */}
-        {/* ================================================= */}
+        {/* SIDEBAR HEADER */}
 
         <div
-          className={`border-b px-4 ${
-            theme === "dark"
-              ? "border-slate-800"
-              : "border-slate-200"
-          }`}
-        ></div>
+          className={`flex h-16 shrink-0 items-center border-b transition-all duration-300 ${
+            sidebarOpen ? "justify-start px-3" : "justify-center px-0"
+          } ${theme === "dark" ? "border-slate-800" : "border-[#d8e3f2]"}`}
+        >
+          {/* HAMBURGER */}
 
-        {/* ================================================= */}
-        {/* MENU */}
-        {/* ================================================= */}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((prev) => !prev)}
+            aria-label="Toggle sidebar"
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
+              theme === "dark" ?
+                "text-slate-400 hover:bg-slate-800 hover:text-white"
+              : "text-slate-500 hover:bg-white/80 hover:text-blue-700"
+            }`}
+          >
+            {sidebarOpen ?
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M6 6l12 12M18 6L6 18"
+                />
+              </svg>
+            : <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            }
+          </button>
 
-        <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+          {/* BRAND */}
 
-          {/* Overview */}
+          <div
+            className={`ml-2 min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ${
+              sidebarOpen ? "w-auto opacity-100" : "w-0 opacity-0"
+            }`}
+          >
+            <p
+              className={`text-[12px] font-bold ${
+                theme === "dark" ? "text-slate-100" : "text-slate-800"
+              }`}
+            >
+              Audit Management
+            </p>
+
+            <p
+              className={`text-[9px] ${
+                theme === "dark" ? "text-slate-500" : "text-slate-400"
+              }`}
+            >
+              Control Center
+            </p>
+          </div>
+        </div>
+
+        {/* NAVIGATION */}
+
+        <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2 py-4">
+          {/* OVERVIEW */}
 
           <div className="mb-5">
             <p
-              className={`mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] ${
-                theme === "dark"
-                  ? "text-slate-600"
-                  : "text-slate-400"
-              }`}
+              className={`mb-2 overflow-hidden px-2 text-[9px] font-bold uppercase tracking-[0.16em] transition-all duration-200 ${
+                sidebarOpen ? "h-3 opacity-100" : "h-0 opacity-0"
+              } ${theme === "dark" ? "text-slate-600" : "text-slate-400"}`}
             >
               Overview
             </p>
 
-            <div className="space-y-1">
-              {renderMenu(overviewItems)}
-            </div>
+            <div className="space-y-1">{renderMenu(overviewItems)}</div>
           </div>
 
-          {/* Management */}
+          {/* MANAGEMENT */}
 
           <div className="mb-5">
             <p
-              className={`mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] ${
-                theme === "dark"
-                  ? "text-slate-600"
-                  : "text-slate-400"
-              }`}
+              className={`mb-2 overflow-hidden px-2 text-[9px] font-bold uppercase tracking-[0.16em] transition-all duration-200 ${
+                sidebarOpen ? "h-3 opacity-100" : "h-0 opacity-0"
+              } ${theme === "dark" ? "text-slate-600" : "text-slate-400"}`}
             >
               Management
             </p>
 
-            <div className="space-y-1">
-              {renderMenu(managementItems)}
-            </div>
+            <div className="space-y-1">{renderMenu(managementItems)}</div>
           </div>
 
-          {/* Communication */}
+          {/* COMMUNICATION */}
 
           <div>
             <p
-              className={`mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.16em] ${
-                theme === "dark"
-                  ? "text-slate-600"
-                  : "text-slate-400"
-              }`}
+              className={`mb-2 overflow-hidden px-2 text-[9px] font-bold uppercase tracking-[0.16em] transition-all duration-200 ${
+                sidebarOpen ? "h-3 opacity-100" : "h-0 opacity-0"
+              } ${theme === "dark" ? "text-slate-600" : "text-slate-400"}`}
             >
               Communication
             </p>
 
-            <div className="space-y-1">
-              {renderMenu(communicationItems)}
-            </div>
+            <div className="space-y-1">{renderMenu(communicationItems)}</div>
           </div>
-
         </nav>
 
-        {/* ================================================= */}
-        {/* SIDEBAR FOOTER / USER */}
-        {/* ================================================= */}
+        <div className="shrink-0 p-2">
+          <div
+            className={`flex items-center rounded-xl transition-all ${
+              sidebarOpen ? "gap-3 px-2 py-2" : "justify-center px-0 py-2"
+            } ${theme === "dark" ? "bg-slate-800/70" : "bg-white/60"}`}
+          >
+            {/* AVATAR */}
+
+            <div
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${
+                theme === "dark" ?
+                  "bg-blue-500/15 text-blue-400"
+                : "bg-blue-50 text-blue-700"
+              }`}
+            >
+              {getInitials(name)}
+            </div>
+
+            {/* USER INFO */}
+
+            {sidebarOpen && (
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`truncate text-[11px] font-semibold ${
+                    theme === "dark" ? "text-slate-200" : "text-slate-700"
+                  }`}
+                >
+                  {name || "User"}
+                </p>
+
+                <p
+                  className={`truncate text-[9px] ${
+                    theme === "dark" ? "text-slate-500" : "text-slate-400"
+                  }`}
+                >
+                  {role || "User"}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </aside>
 
-      {/* ================================================= */}
-      {/* MAIN CONTENT */}
-      {/* ================================================= */}
+      {/* ===================================================
+          MAIN CONTENT
+      =================================================== */}
 
       <main
-        className={`ml-[235px] min-h-screen overflow-x-hidden pt-16 transition-colors duration-300 ${
-          theme === "dark"
-            ? "bg-slate-900"
-            : "bg-slate-100"
-        }`}
+        className={`min-h-screen overflow-x-hidden pt-16 pb-[58px] transition-all duration-300 ${
+          sidebarOpen ? "lg:ml-[235px]" : "lg:ml-[64px]"
+        } ${theme === "dark" ? "bg-slate-900" : "bg-[#f4f7fb]"}`}
       >
         {children}
       </main>
+
+      {/* ===================================================
+          FIXED FOOTER
+      =================================================== */}
+
+      <footer
+        className={`fixed bottom-0 left-0 right-0 z-50 h-[45px] border-t transition-all duration-300 ${
+          theme === "dark" ?
+            "border-slate-800 bg-[#172033]"
+          : "border-[#d8e3f2] bg-gradient-to-b from-[#eaf2ff] via-[#f0f5fc] to-[#f6f8fc]"
+        }`}
+      >
+        <div
+          className={`flex h-full items-center justify-between gap-4 px-4 transition-all duration-300 sm:px-5 ${
+            sidebarOpen ? "lg:pl-[255px]" : "lg:pl-[84px]"
+          } lg:pr-6`}
+        >
+          {/* =================================================
+        LEFT — COPYRIGHT
+    ================================================= */}
+
+          <div className="min-w-0 flex-1">
+            <p
+              className={`truncate text-[10px] font-medium sm:text-[11px] ${
+                theme === "dark" ? "text-slate-400" : "text-slate-500"
+              }`}
+            >
+              © {new Date().getFullYear()} Audit Management System
+            </p>
+          </div>
+
+          {/* =================================================
+        CENTER — SYSTEM INFO
+    ================================================= */}
+
+          <div
+            className={`hidden items-center gap-2 md:flex ${
+              theme === "dark" ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
+            <span className="text-[10px]">Secure Audit Management</span>
+
+            <span
+              className={`h-1 w-1 rounded-full ${
+                theme === "dark" ? "bg-slate-600" : "bg-slate-300"
+              }`}
+            />
+
+            <span className="text-[10px]">All rights reserved</span>
+          </div>
+
+          {/* =================================================
+        RIGHT — VERSION + STATUS
+    ================================================= */}
+
+          <div className="flex shrink-0 items-center gap-2">
+            {/* SYSTEM STATUS */}
+
+            <div
+              className={`hidden items-center gap-1.5 sm:flex ${
+                theme === "dark" ? "text-slate-500" : "text-slate-400"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  theme === "dark" ? "bg-emerald-400" : "bg-emerald-500"
+                }`}
+              />
+
+              <span className="text-[10px]">System Online</span>
+            </div>
+
+            {/* VERSION */}
+
+            <span
+              className={`rounded-md border px-2 py-1 text-[9px] font-semibold ${
+                theme === "dark" ?
+                  "border-slate-700 bg-slate-800/80 text-slate-400"
+                : "border-slate-200 bg-white/60 text-slate-500"
+              }`}
+            >
+              v1.0.0
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

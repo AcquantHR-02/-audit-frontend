@@ -46,13 +46,39 @@ export interface AuditRequest {
 }
 
 // ========================================
+// PAGINATION RESPONSE
+// ========================================
+
+export interface AuditPage {
+  content: Audit[];
+
+  totalElements: number;
+  totalPages: number;
+
+  size: number;
+  number: number;
+
+  first: boolean;
+  last: boolean;
+
+  numberOfElements: number;
+  empty: boolean;
+}
+
+// ========================================
 // GET ALL AUDITS
 // ========================================
 
-export const getAllAudits = async (): Promise<Audit[]> => {
-  const response = await baseApi.get<Audit[]>(
-    "/api/audits",
-  );
+export const getAllAudits = async (
+  page: number = 0,
+  size: number = 10,
+): Promise<AuditPage> => {
+  const response = await baseApi.get<AuditPage>("/api/audits", {
+    params: {
+      page,
+      size,
+    },
+  });
 
   return response.data;
 };
@@ -61,27 +87,18 @@ export const getAllAudits = async (): Promise<Audit[]> => {
 // GET AUDIT BY ID
 // ========================================
 
-export const getAuditById = async (
-  id: number,
-): Promise<Audit> => {
-  const response = await baseApi.get<Audit>(
-    `/api/audits/${id}`,
-  );
+export async function getAuditById(id: number): Promise<Audit> {
+  const response = await baseApi.get<Audit>(`/api/audits/${id}`);
 
   return response.data;
-};
+}
 
 // ========================================
 // CREATE AUDIT
 // ========================================
 
-export const createAudit = async (
-  data: AuditRequest,
-): Promise<Audit> => {
-  const response = await baseApi.post<Audit>(
-    "/api/audits",
-    data,
-  );
+export const createAudit = async (data: AuditRequest): Promise<Audit> => {
+  const response = await baseApi.post<Audit>("/api/audits", data);
 
   return response.data;
 };
@@ -94,10 +111,7 @@ export const updateAudit = async (
   id: number,
   data: AuditRequest,
 ): Promise<Audit> => {
-  const response = await baseApi.put<Audit>(
-    `/api/audits/${id}`,
-    data,
-  );
+  const response = await baseApi.put<Audit>(`/api/audits/${id}`, data);
 
   return response.data;
 };
@@ -106,13 +120,8 @@ export const updateAudit = async (
 // DELETE AUDIT
 // ========================================
 
-export const deleteAudit = async (
-  id: number,
-) => {
-  const response = await baseApi.delete(
-    `/api/audits/${id}`,
-  );
+export const deleteAudit = async (id: number) => {
+  const response = await baseApi.delete(`/api/audits/${id}`);
 
   return response.data;
 };
-

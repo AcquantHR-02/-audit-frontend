@@ -31,12 +31,41 @@ export interface ComplianceRequest {
 }
 
 // ========================================
+// PAGINATION RESPONSE
+// ========================================
+
+export interface CompliancePage {
+  content: Compliance[];
+
+  totalElements: number;
+  totalPages: number;
+
+  size: number;
+  number: number;
+
+  first: boolean;
+  last: boolean;
+
+  numberOfElements: number;
+  empty: boolean;
+}
+
+// ========================================
 // GET ALL COMPLIANCE
 // ========================================
 
-export const getAllCompliance = async (): Promise<Compliance[]> => {
-  const response = await baseApi.get<Compliance[]>(
-    "/api/compliance"
+export const getAllCompliance = async (
+  page: number = 0,
+  size: number = 10,
+): Promise<CompliancePage> => {
+  const response = await baseApi.get<CompliancePage>(
+    "/api/compliance",
+    {
+      params: {
+        page,
+        size,
+      },
+    },
   );
 
   return response.data;
@@ -47,10 +76,10 @@ export const getAllCompliance = async (): Promise<Compliance[]> => {
 // ========================================
 
 export const getComplianceById = async (
-  id: number
+  id: number,
 ): Promise<Compliance> => {
   const response = await baseApi.get<Compliance>(
-    `/api/compliance/${id}`
+    `/api/compliance/${id}`,
   );
 
   return response.data;
@@ -61,11 +90,11 @@ export const getComplianceById = async (
 // ========================================
 
 export const createCompliance = async (
-  data: ComplianceRequest
+  data: ComplianceRequest,
 ): Promise<Compliance> => {
   const response = await baseApi.post<Compliance>(
     "/api/compliance",
-    data
+    data,
   );
 
   return response.data;
@@ -77,11 +106,11 @@ export const createCompliance = async (
 
 export const updateCompliance = async (
   id: number,
-  data: ComplianceRequest
+  data: ComplianceRequest,
 ): Promise<Compliance> => {
   const response = await baseApi.put<Compliance>(
     `/api/compliance/${id}`,
-    data
+    data,
   );
 
   return response.data;
@@ -92,10 +121,10 @@ export const updateCompliance = async (
 // ========================================
 
 export const deleteCompliance = async (
-  id: number
+  id: number,
 ) => {
   const response = await baseApi.delete(
-    `/api/compliance/${id}`
+    `/api/compliance/${id}`,
   );
 
   return response.data;
@@ -106,10 +135,10 @@ export const deleteCompliance = async (
 // ========================================
 
 export const getComplianceByStatus = async (
-  status: string
+  status: string,
 ): Promise<Compliance[]> => {
   const response = await baseApi.get<Compliance[]>(
-    `/api/compliance/status/${status}`
+    `/api/compliance/status/${status}`,
   );
 
   return response.data;

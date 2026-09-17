@@ -1,586 +1,1973 @@
-
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+
+import { useTheme } from "@/app/context/ThemeContext";
+import baseApi from "@/app/lib/api/baseapi";
 
 import {
+  createCompliance,
   deleteCompliance,
   getAllCompliance,
   type Compliance,
+  type ComplianceRequest,
 } from "@/app/lib/api/complianceApi";
 
-export default function CompliancePage() {
-  const [complianceRecords, setComplianceRecords] = useState<
-    Compliance[]
-  >([]);
+import {
+  getAllAudits,
+  type Audit,
+} from "@/app/lib/api/auditApi";
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+// ======================================================
+// TYPES
+// ======================================================
+
+type ModalType = "create" | "edit" | "view" | null;
+
+type StatusFilter =
+  | "All Status"
+  | "Compliant"
+  | "Due Soon"
+  | "Overdue"
+  | "In Progress"
+  | "Pending";
+
+// ======================================================
+// ICONS
+// ======================================================
+
+function ComplianceIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+    </svg>
+  );
+}
+
+function SearchIcon({ size = 17 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-3.5-3.5" />
+    </svg>
+  );
+}
+
+function RefreshIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 11a8.1 8.1 0 00-15.5-2M4 5v4h4" />
+      <path d="M4 13a8.1 8.1 0 0015.5 2M20 19v-4h-4" />
+    </svg>
+  );
+}
+
+function PlusIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function EyeIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EditIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 013 3L8 18l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  );
+}
+
+function TrashIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 15H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function CloseIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function CheckIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
+function ClockIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+function AlertIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M10.3 3.8L2.6 17a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z" />
+      <path d="M12 9v4M12 17h.01" />
+    </svg>
+  );
+}
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+function normalizeArray<T>(response: any): T[] {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data;
+  }
+
+  if (Array.isArray(response?.data?.content)) {
+    return response.data.content;
+  }
+
+  if (Array.isArray(response?.content)) {
+    return response.content;
+  }
+
+  return [];
+}
+
+function statusClasses(status: string, dark: boolean) {
+  switch (status?.toLowerCase()) {
+    case "compliant":
+      return dark
+        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+        : "bg-emerald-50 text-emerald-700 border-emerald-200";
+
+    case "due soon":
+      return dark
+        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+        : "bg-amber-50 text-amber-700 border-amber-200";
+
+    case "overdue":
+      return dark
+        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+        : "bg-rose-50 text-rose-700 border-rose-200";
+
+    case "in progress":
+      return dark
+        ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+        : "bg-blue-50 text-blue-700 border-blue-200";
+
+    case "pending":
+      return dark
+        ? "bg-slate-500/10 text-slate-300 border-slate-500/20"
+        : "bg-slate-100 text-slate-600 border-slate-200";
+
+    default:
+      return dark
+        ? "bg-slate-500/10 text-slate-300 border-slate-500/20"
+        : "bg-slate-100 text-slate-600 border-slate-200";
+  }
+}
+
+function statusDot(status: string) {
+  switch (status?.toLowerCase()) {
+    case "compliant":
+      return "bg-emerald-500";
+
+    case "due soon":
+      return "bg-amber-500";
+
+    case "overdue":
+      return "bg-rose-500";
+
+    case "in progress":
+      return "bg-blue-500";
+
+    default:
+      return "bg-slate-400";
+  }
+}
+
+// ======================================================
+// PAGE
+// ======================================================
+
+export default function CompliancePage() {
+  const { theme } = useTheme();
+
+  const dark = theme === "dark";
+
+  // ====================================================
+  // DATA STATES
+  // ====================================================
+
+  const [compliance, setCompliance] = useState<Compliance[]>([]);
+  const [audits, setAudits] = useState<Audit[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // =========================
-  // Fetch Compliance Records
-  // =========================
+  // ====================================================
+  // FILTER STATES
+  // ====================================================
 
-  const fetchCompliance = async () => {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] =
+    useState<StatusFilter>("All Status");
+
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // ====================================================
+  // MODAL STATES
+  // ====================================================
+
+  const [modal, setModal] = useState<ModalType>(null);
+
+  const [selected, setSelected] = useState<Compliance | null>(null);
+
+  const [deleteTarget, setDeleteTarget] =
+    useState<Compliance | null>(null);
+
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // ====================================================
+  // FORM STATES
+  // ====================================================
+
+  const [requirement, setRequirement] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("Pending");
+  const [auditId, setAuditId] = useState("");
+
+  const [formError, setFormError] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
+
+  // ====================================================
+  // THEME COLORS
+  // ====================================================
+
+  const pageBg = dark ? "bg-[#0b1220]" : "bg-[#f5f8fc]";
+
+  const cardBg = dark ? "bg-[#111a2e]" : "bg-white";
+
+  const inputBg = dark ? "bg-[#172238]" : "bg-white";
+
+  const borderColor = dark
+    ? "border-slate-700/70"
+    : "border-slate-200";
+
+  const textPrimary = dark
+    ? "text-slate-100"
+    : "text-[#10213f]";
+
+  const textSecondary = dark
+    ? "text-slate-400"
+    : "text-[#637897]";
+
+  // ====================================================
+  // LOAD COMPLIANCE
+  // ====================================================
+
+  async function loadCompliance() {
     try {
       setLoading(true);
       setError("");
 
-      const data = await getAllCompliance();
+      const response = await getAllCompliance();
 
-      setComplianceRecords(data);
-    } catch (err) {
+      setCompliance(normalizeArray<Compliance>(response));
+    } catch (err: any) {
       console.error(err);
 
-      setError(
-        "Unable to load compliance records. Please check whether the backend is running."
-      );
+      if (err?.response?.status === 401) {
+        setError("Session expired. Please login again.");
+      } else if (err?.response?.status === 403) {
+        setError("You do not have permission to view compliance.");
+      } else {
+        setError("Failed to load compliance records.");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  // ====================================================
+  // LOAD AUDITS
+  // ====================================================
+
+  async function loadAudits() {
+    try {
+      const response = await getAllAudits();
+
+      setAudits(normalizeArray<Audit>(response));
+    } catch (err) {
+      console.error("Failed to load audits:", err);
+    }
+  }
+
+  // ====================================================
+  // INITIAL LOAD
+  // ====================================================
 
   useEffect(() => {
-    fetchCompliance();
+    loadCompliance();
+    loadAudits();
   }, []);
 
-  // =========================
-  // Status List
-  // =========================
+  // ====================================================
+  // STATS
+  // ====================================================
 
-  const statuses = useMemo(() => {
-    const uniqueStatuses = Array.from(
-      new Set(
-        complianceRecords
-          .map((record) => record.status)
-          .filter(Boolean)
-      )
-    );
+  const stats = useMemo(() => {
+    const total = compliance.length;
 
-    return ["All", ...uniqueStatuses];
-  }, [complianceRecords]);
+    const compliant = compliance.filter(
+      (item) =>
+        item.status?.toLowerCase() === "compliant"
+    ).length;
 
-  // =========================
-  // Search + Filter
-  // =========================
+    const dueSoon = compliance.filter(
+      (item) =>
+        item.status?.toLowerCase() === "due soon"
+    ).length;
 
-  const filteredRecords = useMemo(() => {
-    const searchValue = search.toLowerCase().trim();
+    const overdue = compliance.filter(
+      (item) =>
+        item.status?.toLowerCase() === "overdue"
+    ).length;
 
-    return complianceRecords.filter((record) => {
+    return {
+      total,
+      compliant,
+      dueSoon,
+      overdue,
+    };
+  }, [compliance]);
+
+  // ====================================================
+  // FILTERED DATA
+  // ====================================================
+
+  const filteredCompliance = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return compliance.filter((item) => {
       const matchesSearch =
-        !searchValue ||
-        record.id.toString().includes(searchValue) ||
-        record.requirement
-          ?.toLowerCase()
-          .includes(searchValue) ||
-        record.description
-          ?.toLowerCase()
-          .includes(searchValue) ||
-        record.status
-          ?.toLowerCase()
-          .includes(searchValue) ||
-        record.audit?.title
-          ?.toLowerCase()
-          .includes(searchValue);
+        !query ||
+        String(item.id).includes(query) ||
+        item.requirement?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.audit?.title?.toLowerCase().includes(query);
 
       const matchesStatus =
-        statusFilter === "All" ||
-        record.status === statusFilter;
+        statusFilter === "All Status" ||
+        item.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [complianceRecords, search, statusFilter]);
+  }, [compliance, search, statusFilter]);
 
-  // =========================
-  // Statistics
-  // =========================
+  // ====================================================
+  // PAGINATION
+  // ====================================================
 
-  const totalCompliance = complianceRecords.length;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCompliance.length / pageSize)
+  );
 
-  const compliantCount = complianceRecords.filter(
-    (record) =>
-      record.status?.toLowerCase() === "compliant"
-  ).length;
+  const paginatedCompliance = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
 
-  const dueSoonCount = complianceRecords.filter(
-    (record) =>
-      record.status?.toLowerCase() === "due soon"
-  ).length;
-
-  const overdueCount = complianceRecords.filter(
-    (record) =>
-      record.status?.toLowerCase() === "overdue"
-  ).length;
-
-  // =========================
-  // Delete
-  // =========================
-
-  const handleDelete = async (id: number) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this compliance record?"
+    return filteredCompliance.slice(
+      start,
+      start + pageSize
     );
+  }, [filteredCompliance, currentPage, pageSize]);
 
-    if (!confirmed) return;
+  const showingStart =
+    filteredCompliance.length === 0
+      ? 0
+      : (currentPage - 1) * pageSize + 1;
+
+  const showingEnd = Math.min(
+    currentPage * pageSize,
+    filteredCompliance.length
+  );
+
+  // ====================================================
+  // RESET PAGE WHEN FILTER CHANGES
+  // ====================================================
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, pageSize]);
+
+  // ====================================================
+  // OPEN CREATE MODAL
+  // ====================================================
+
+  function openCreateModal() {
+    setSelected(null);
+
+    setRequirement("");
+    setDescription("");
+    setStatus("Pending");
+    setAuditId("");
+
+    setFormError("");
+
+    setModal("create");
+  }
+
+  // ====================================================
+  // OPEN EDIT MODAL
+  // ====================================================
+
+  function openEditModal(item: Compliance) {
+    setSelected(item);
+
+    setRequirement(item.requirement || "");
+    setDescription(item.description || "");
+    setStatus(item.status || "Pending");
+    setAuditId(item.audit?.id ? String(item.audit.id) : "");
+
+    setFormError("");
+
+    setModal("edit");
+  }
+
+  // ====================================================
+  // OPEN VIEW MODAL
+  // ====================================================
+
+  function openViewModal(item: Compliance) {
+    setSelected(item);
+    setModal("view");
+  }
+
+  // ====================================================
+  // CLOSE MODAL
+  // ====================================================
+
+  function closeModal() {
+    if (formLoading) return;
+
+    setModal(null);
+    setSelected(null);
+    setFormError("");
+  }
+
+  // ====================================================
+  // SUBMIT FORM
+  // ====================================================
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    setFormError("");
+
+    if (!requirement.trim()) {
+      setFormError("Requirement is required.");
+      return;
+    }
+
+    if (!description.trim()) {
+      setFormError("Description is required.");
+      return;
+    }
+
+    if (!status) {
+      setFormError("Status is required.");
+      return;
+    }
+
+    if (!auditId) {
+      setFormError("Please select an audit.");
+      return;
+    }
+
+    const payload: ComplianceRequest = {
+      requirement: requirement.trim(),
+      description: description.trim(),
+      status,
+      audit: {
+        id: Number(auditId),
+      },
+    };
 
     try {
-      setDeletingId(id);
-      setError("");
+      setFormLoading(true);
 
-      await deleteCompliance(id);
+      if (modal === "create") {
+        await createCompliance(payload);
+      } else if (modal === "edit" && selected?.id) {
+        await baseApi.put(
+          `/api/compliance/${selected.id}`,
+          payload
+        );
+      }
 
-      setComplianceRecords((records) =>
-        records.filter((record) => record.id !== id)
-      );
-    } catch (err) {
+      closeModal();
+
+      await loadCompliance();
+    } catch (err: any) {
+      console.error(err);
+
+      if (err?.response?.status === 401) {
+        setFormError("Session expired. Please login again.");
+      } else if (err?.response?.status === 403) {
+        setFormError("You do not have permission for this action.");
+      } else {
+        setFormError(
+          err?.response?.data?.message ||
+            "Failed to save compliance."
+        );
+      }
+    } finally {
+      setFormLoading(false);
+    }
+  }
+
+  // ====================================================
+  // DELETE
+  // ====================================================
+
+  async function handleDelete() {
+    if (!deleteTarget?.id) return;
+
+    try {
+      setDeleteLoading(true);
+
+      await deleteCompliance(deleteTarget.id);
+
+      setDeleteTarget(null);
+
+      await loadCompliance();
+    } catch (err: any) {
       console.error(err);
 
       setError(
-        "Failed to delete compliance record. Please try again."
+        err?.response?.data?.message ||
+          "Failed to delete compliance."
       );
     } finally {
-      setDeletingId(null);
+      setDeleteLoading(false);
     }
-  };
+  }
 
-  // =========================
-  // Reset Filters
-  // =========================
+  // ====================================================
+  // STAT CARD
+  // ====================================================
 
-  const handleReset = () => {
-    setSearch("");
-    setStatusFilter("All");
-  };
-
-  // =========================
-  // Status Style
-  // =========================
-
-  const getStatusStyle = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "compliant":
-        return "bg-green-50 text-green-700 border-green-200";
-
-      case "due soon":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-
-      case "overdue":
-        return "bg-red-50 text-red-700 border-red-200";
-
-      case "in progress":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-
-      case "pending":
-        return "bg-gray-50 text-gray-700 border-gray-200";
-
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
-    }
-  };
-
-  // =========================
-  // Loading
-  // =========================
-
-  if (loading) {
+  function StatCard({
+    title,
+    value,
+    icon,
+    iconBg,
+  }: {
+    title: string;
+    value: number;
+    icon: React.ReactNode;
+    iconBg: string;
+  }) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex min-h-56 items-center justify-center rounded-xl border border-gray-200 bg-white">
-            <div className="text-center">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+      <div
+        className={`rounded-xl border ${borderColor} ${cardBg}
+        px-4 py-3 shadow-sm`}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p
+              className={`text-[11px] font-medium ${textSecondary}`}
+            >
+              {title}
+            </p>
 
-              <p className="mt-3 text-sm text-gray-500">
-                Loading compliance records...
-              </p>
-            </div>
+            <p
+              className={`mt-1 text-[22px] font-semibold ${textPrimary}`}
+            >
+              {value}
+            </p>
+          </div>
+
+          <div
+            className={`flex h-9 w-9 items-center justify-center rounded-lg ${iconBg}`}
+          >
+            {icon}
           </div>
         </div>
       </div>
     );
   }
 
-  // =========================
-  // Main UI
-  // =========================
+  // ====================================================
+  // PAGE
+  // ====================================================
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-5">
-      <div className="mx-auto max-w-7xl space-y-4">
+    <div
+      className={`min-h-full w-full ${pageBg} ${textPrimary} px-4 py-5 sm:px-6`}
+    >
+      <div className="mx-auto w-full max-w-[1500px]">
 
-        {/* ================= HEADER ================= */}
+        {/* ==================================================
+            HEADER
+        ================================================== */}
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
           <div>
-            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-              Compliance
-            </h1>
-
-            <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">
-              Manage and monitor compliance requirements
-            </p>
-          </div>
-
-          <Link
-            href="/dashboard/compliance/create"
-            className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 sm:px-4 sm:text-sm"
-          >
-            + Create Compliance
-          </Link>
-        </div>
-
-        {/* ================= ERROR ================= */}
-
-        {error && (
-          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-            <span>{error}</span>
-
-            <button
-              type="button"
-              onClick={() => setError("")}
-              className="ml-3 text-sm font-bold text-red-500 hover:text-red-700"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {/* ================= STAT CARDS ================= */}
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-
-          {/* Total */}
-          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-gray-500">
-              Total Compliance
-            </p>
-
-            <p className="mt-1 text-2xl font-bold text-gray-900">
-              {totalCompliance}
-            </p>
-          </div>
-
-          {/* Compliant */}
-          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-gray-500">
-              Compliant
-            </p>
-
-            <p className="mt-1 text-2xl font-bold text-green-600">
-              {compliantCount}
-            </p>
-          </div>
-
-          {/* Due Soon */}
-          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-gray-500">
-              Due Soon
-            </p>
-
-            <p className="mt-1 text-2xl font-bold text-yellow-600">
-              {dueSoonCount}
-            </p>
-          </div>
-
-          {/* Overdue */}
-          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-gray-500">
-              Overdue
-            </p>
-
-            <p className="mt-1 text-2xl font-bold text-red-600">
-              {overdueCount}
-            </p>
-          </div>
-
-        </div>
-
-        {/* ================= SEARCH / FILTER ================= */}
-
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px_auto] sm:items-end">
-
-            {/* Search */}
-
-            <div>
-              <label
-                htmlFor="search"
-                className="mb-1 block text-xs font-semibold text-gray-600"
+            <div className="flex items-center gap-2.5">
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-lg
+                ${
+                  dark
+                    ? "bg-blue-500/10 text-blue-400"
+                    : "bg-blue-50 text-blue-600"
+                }`}
               >
-                Search
-              </label>
+                <ComplianceIcon size={19} />
+              </div>
 
-              <input
-                id="search"
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search compliance..."
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition-all duration-150 placeholder:text-gray-400 focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
-              />
-            </div>
-
-            {/* Status */}
-
-            <div>
-              <label
-                htmlFor="status"
-                className="mb-1 block text-xs font-semibold text-gray-600"
-              >
-                Status
-              </label>
-
-              <select
-                id="status"
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value)
-                }
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition-all duration-150 focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.08)]"
-              >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Reset */}
-
-            <button
-              type="button"
-              onClick={handleReset}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-            >
-              Reset
-            </button>
-
-          </div>
-        </div>
-
-        {/* ================= TABLE ================= */}
-
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-
-          {/* Table Header */}
-
-          <div className="border-b border-gray-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-gray-900">
-              Compliance Records
-            </h2>
-
-            <p className="mt-0.5 text-xs text-gray-500">
-              Showing {filteredRecords.length} of{" "}
-              {complianceRecords.length} records
-            </p>
-          </div>
-
-          {/* Empty State */}
-
-          {filteredRecords.length === 0 ? (
-            <div className="flex min-h-52 items-center justify-center p-5 text-center">
               <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  No compliance records found
-                </p>
+                <h1
+                  className={`text-xl font-semibold tracking-tight ${textPrimary}`}
+                >
+                  Compliance
+                </h1>
 
-                <p className="mt-1 text-xs text-gray-500">
-                  Try changing your search or filter.
+                <p
+                  className={`mt-0.5 text-xs ${textSecondary}`}
+                >
+                  Manage and monitor compliance requirements
                 </p>
               </div>
             </div>
-          ) : (
+          </div>
 
-            /* Table */
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={loadCompliance}
+              disabled={loading}
+              className={`inline-flex h-9 items-center gap-2 rounded-lg
+              border px-3 text-xs font-medium transition
+              ${
+                dark
+                  ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:bg-[#172238]"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              <RefreshIcon size={14} />
 
-            <div className="w-full">
-              <table className="w-full table-fixed">
+              Refresh
+            </button>
 
-                {/* Column Widths */}
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="inline-flex h-9 items-center gap-2 rounded-lg
+              bg-blue-600 px-3.5 text-xs font-semibold text-white
+              transition hover:bg-blue-700"
+            >
+              <PlusIcon size={14} />
 
-                <colgroup>
-                  <col className="w-[9%]" />
-                  <col className="w-[21%]" />
-                  <col className="w-[27%]" />
-                  <col className="w-[16%]" />
-                  <col className="w-[11%]" />
-                  <col className="w-[16%]" />
-                </colgroup>
+              Add Compliance
+            </button>
+          </div>
+        </div>
 
-                {/* Table Head */}
+        {/* ==================================================
+            STATS
+        ================================================== */}
 
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 text-left">
+        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
 
-                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      ID
-                    </th>
+          <StatCard
+            title="Total Requirements"
+            value={stats.total}
+            icon={
+              <ComplianceIcon
+                size={18}
+              />
+            }
+            iconBg={
+              dark
+                ? "bg-blue-500/10 text-blue-400"
+                : "bg-blue-50 text-blue-600"
+            }
+          />
 
-                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Requirement
-                    </th>
+          <StatCard
+            title="Compliant"
+            value={stats.compliant}
+            icon={<CheckIcon size={18} />}
+            iconBg={
+              dark
+                ? "bg-emerald-500/10 text-emerald-400"
+                : "bg-emerald-50 text-emerald-600"
+            }
+          />
 
-                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Description
-                    </th>
+          <StatCard
+            title="Due Soon"
+            value={stats.dueSoon}
+            icon={<ClockIcon size={18} />}
+            iconBg={
+              dark
+                ? "bg-amber-500/10 text-amber-400"
+                : "bg-amber-50 text-amber-600"
+            }
+          />
 
-                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Audit
-                    </th>
+          <StatCard
+            title="Overdue"
+            value={stats.overdue}
+            icon={<AlertIcon size={18} />}
+            iconBg={
+              dark
+                ? "bg-rose-500/10 text-rose-400"
+                : "bg-rose-50 text-rose-600"
+            }
+          />
+        </div>
 
-                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Status
-                    </th>
+        {/* ==================================================
+            ERROR
+        ================================================== */}
 
-                    <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Action
-                    </th>
+        {error && (
+          <div
+            className={`mb-4 rounded-lg border px-4 py-3 text-xs
+            ${
+              dark
+                ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
+                : "border-rose-200 bg-rose-50 text-rose-700"
+            }`}
+          >
+            {error}
+          </div>
+        )}
 
+        {/* ==================================================
+            MAIN CARD
+        ================================================== */}
+
+        <div
+          className={`overflow-hidden rounded-xl border ${borderColor} ${cardBg} shadow-sm`}
+        >
+
+          {/* ==================================================
+              TOOLBAR
+          ================================================== */}
+
+          <div
+            className={`border-b ${borderColor} p-3.5`}
+          >
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+
+              <div className="relative w-full xl:max-w-[360px]">
+                <div
+                  className={`pointer-events-none absolute left-3 top-1/2
+                  -translate-y-1/2 ${textSecondary}`}
+                >
+                  <SearchIcon size={15} />
+                </div>
+
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) =>
+                    setSearch(e.target.value)
+                  }
+                  placeholder="Search requirement, description, audit..."
+                  className={`h-9 w-full rounded-lg border
+                  ${borderColor} ${inputBg}
+                  pl-9 pr-3 text-xs outline-none
+                  transition
+                  ${
+                    dark
+                      ? "text-slate-100 placeholder:text-slate-500 focus:border-blue-500/50"
+                      : "text-slate-700 placeholder:text-slate-400 focus:border-blue-400"
+                  }`}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+
+                {/* STATUS */}
+
+                <div className="relative">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) =>
+                      setStatusFilter(
+                        e.target.value as StatusFilter
+                      )
+                    }
+                    className={`h-9 appearance-none rounded-lg border
+                    ${borderColor} ${inputBg}
+                    px-3 pr-8 text-xs outline-none
+                    ${
+                      dark
+                        ? "text-slate-300"
+                        : "text-slate-600"
+                    }`}
+                  >
+                    <option>All Status</option>
+                    <option>Compliant</option>
+                    <option>Due Soon</option>
+                    <option>Overdue</option>
+                    <option>In Progress</option>
+                    <option>Pending</option>
+                  </select>
+
+                  <div
+                    className={`pointer-events-none absolute right-2.5
+                    top-1/2 -translate-y-1/2 ${textSecondary}`}
+                  >
+                    <ChevronDownIcon size={13} />
+                  </div>
+                </div>
+
+                {/* PAGE SIZE */}
+
+                <div className="relative">
+                  <select
+                    value={pageSize}
+                    onChange={(e) =>
+                      setPageSize(
+                        Number(e.target.value)
+                      )
+                    }
+                    className={`h-9 appearance-none rounded-lg border
+                    ${borderColor} ${inputBg}
+                    px-3 pr-8 text-xs outline-none
+                    ${
+                      dark
+                        ? "text-slate-300"
+                        : "text-slate-600"
+                    }`}
+                  >
+                    <option value={5}>5 / page</option>
+                    <option value={10}>10 / page</option>
+                    <option value={20}>20 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+
+                  <div
+                    className={`pointer-events-none absolute right-2.5
+                    top-1/2 -translate-y-1/2 ${textSecondary}`}
+                  >
+                    <ChevronDownIcon size={13} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ==================================================
+              TABLE
+          ================================================== */}
+
+          <div className="w-full overflow-x-auto">
+
+            <table className="w-full min-w-[920px] border-collapse">
+
+              <thead>
+                <tr
+                  className={`border-b ${borderColor}
+                  ${
+                    dark
+                      ? "bg-[#0e1728]"
+                      : "bg-slate-50/80"
+                  }`}
+                >
+                  <th
+                    className={`w-[70px] px-4 py-2.5 text-left
+                    text-[10px] font-semibold uppercase tracking-wide
+                    ${textSecondary}`}
+                  >
+                    ID
+                  </th>
+
+                  <th
+                    className={`w-[190px] px-4 py-2.5 text-left
+                    text-[10px] font-semibold uppercase tracking-wide
+                    ${textSecondary}`}
+                  >
+                    Requirement
+                  </th>
+
+                  <th
+                    className={`w-[260px] px-4 py-2.5 text-left
+                    text-[10px] font-semibold uppercase tracking-wide
+                    ${textSecondary}`}
+                  >
+                    Description
+                  </th>
+
+                  <th
+                    className={`w-[180px] px-4 py-2.5 text-left
+                    text-[10px] font-semibold uppercase tracking-wide
+                    ${textSecondary}`}
+                  >
+                    Audit
+                  </th>
+
+                  <th
+                    className={`w-[140px] px-4 py-2.5 text-left
+                    text-[10px] font-semibold uppercase tracking-wide
+                    ${textSecondary}`}
+                  >
+                    Status
+                  </th>
+
+                  <th
+                    className={`w-[150px] px-4 py-2.5 text-center
+                    text-[10px] font-semibold uppercase tracking-wide
+                    ${textSecondary}`}
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className={`px-4 py-12 text-center text-xs ${textSecondary}`}
+                    >
+                      Loading compliance records...
+                    </td>
                   </tr>
-                </thead>
-
-                {/* Table Body */}
-
-                <tbody className="divide-y divide-gray-100">
-
-                  {filteredRecords.map((record) => (
-
+                ) : paginatedCompliance.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className={`px-4 py-12 text-center text-xs ${textSecondary}`}
+                    >
+                      No compliance records found.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedCompliance.map((item) => (
                     <tr
-                      key={record.id}
-                      className="transition-colors hover:bg-gray-50"
+                      key={item.id}
+                      className={`border-b ${borderColor}
+                      transition-colors
+                      ${
+                        dark
+                          ? "hover:bg-[#172238]/60"
+                          : "hover:bg-slate-50/70"
+                      }`}
                     >
 
                       {/* ID */}
 
-                      <td className="px-3 py-3">
-                        <Link
-                          href={`/dashboard/compliance/${record.id}`}
-                          className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex h-9 w-9 items-center
+                          justify-center rounded-lg text-[10px]
+                          font-semibold
+                          ${
+                            dark
+                              ? "bg-slate-800 text-slate-300"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
                         >
-                          CMP-
-                          {String(record.id).padStart(3, "0")}
-                        </Link>
+                          #{item.id}
+                        </span>
                       </td>
 
-                      {/* Requirement */}
+                      {/* REQUIREMENT */}
 
-                      <td className="px-3 py-3">
-                        <p
-                          title={record.requirement}
-                          className="truncate text-xs font-semibold text-gray-900"
+                      <td className="px-4 py-3">
+                        <div
+                          className={`max-w-[180px] truncate
+                          text-[12px] font-semibold ${textPrimary}`}
+                          title={item.requirement}
                         >
-                          {record.requirement || "-"}
-                        </p>
+                          {item.requirement}
+                        </div>
                       </td>
 
-                      {/* Description */}
+                      {/* DESCRIPTION */}
 
-                      <td className="px-3 py-3">
-                        <p
-                          title={record.description}
-                          className="truncate text-xs text-gray-600"
+                      <td className="px-4 py-3">
+                        <div
+                          className={`max-w-[230px] line-clamp-2
+                          text-[11px] leading-4 ${textSecondary}`}
+                          title={item.description}
                         >
-                          {record.description || "-"}
-                        </p>
+                          {item.description}
+                        </div>
                       </td>
 
-                      {/* Audit */}
+                      {/* AUDIT */}
 
-                      <td className="px-3 py-3">
-                        {record.audit ? (
-                          <Link
-                            href={`/dashboard/audits/${record.audit.id}`}
-                            title={
-                              record.audit.title ||
-                              `Audit #${record.audit.id}`
-                            }
-                            className="block truncate text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                          >
-                            {record.audit.title ||
-                              `Audit #${record.audit.id}`}
-                          </Link>
+                      <td className="px-4 py-3">
+                        {item.audit ? (
+                          <div className="max-w-[165px]">
+                            <div
+                              className={`truncate text-[12px]
+                              font-medium ${textPrimary}`}
+                              title={item.audit.title}
+                            >
+                              {item.audit.title ||
+                                "Untitled Audit"}
+                            </div>
+
+                            <div
+                              className={`mt-0.5 text-[10px]
+                              ${textSecondary}`}
+                            >
+                              Audit #{item.audit.id}
+                            </div>
+                          </div>
                         ) : (
-                          <span className="text-xs text-gray-400">
-                            Not assigned
+                          <span
+                            className={`text-[11px] ${textSecondary}`}
+                          >
+                            No audit
                           </span>
                         )}
                       </td>
 
-                      {/* Status */}
+                      {/* STATUS */}
 
-                      <td className="px-3 py-3">
+                      <td className="px-4 py-3">
                         <span
-                          className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold ${getStatusStyle(
-                            record.status
-                          )}`}
+                          className={`inline-flex items-center gap-1.5
+                          rounded-full border px-2.5 py-1
+                          text-[10px] font-semibold
+                          ${statusClasses(item.status, dark)}`}
                         >
-                          {record.status || "Unknown"}
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full
+                            ${statusDot(item.status)}`}
+                          />
+
+                          {item.status}
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      {/* ACTIONS */}
 
-                      <td className="px-3 py-3">
-                        <div className="flex justify-end gap-1">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-1.5">
 
-                          {/* View */}
-
-                          <Link
-                            href={`/dashboard/compliance/${record.id}`}
-                            className="rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
-                          >
-                            View
-                          </Link>
-
-                          {/* Edit */}
-
-                          <Link
-                            href={`/dashboard/compliance/${record.id}/edit`}
-                            className="rounded-md border border-blue-200 px-2 py-1 text-[10px] font-semibold text-blue-600 transition-colors hover:bg-blue-50"
-                          >
-                            Edit
-                          </Link>
-
-                          {/* Delete */}
+                          {/* VIEW */}
 
                           <button
                             type="button"
                             onClick={() =>
-                              handleDelete(record.id)
+                              openViewModal(item)
                             }
-                            disabled={
-                              deletingId === record.id
-                            }
-                            className="rounded-md border border-red-200 px-2 py-1 text-[10px] font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="View"
+                            className={`flex h-9 w-9 items-center
+                            justify-center rounded-lg border
+                            transition
+                            ${
+                              dark
+                                ? "border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400"
+                                : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                            }`}
                           >
-                            {deletingId === record.id
-                              ? "..."
-                              : "Delete"}
+                            <EyeIcon size={15} />
+                          </button>
+
+                          {/* EDIT */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openEditModal(item)
+                            }
+                            title="Edit"
+                            className={`flex h-9 w-9 items-center
+                            justify-center rounded-lg border
+                            transition
+                            ${
+                              dark
+                                ? "border-slate-700 bg-slate-800/60 text-slate-300 hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-400"
+                                : "border-slate-200 bg-white text-slate-500 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
+                            }`}
+                          >
+                            <EditIcon size={15} />
+                          </button>
+
+                          {/* DELETE */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDeleteTarget(item)
+                            }
+                            title="Delete"
+                            className={`flex h-9 w-9 items-center
+                            justify-center rounded-lg border
+                            transition
+                            ${
+                              dark
+                                ? "border-slate-700 bg-slate-800/60 text-slate-300 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400"
+                                : "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                            }`}
+                          >
+                            <TrashIcon size={15} />
                           </button>
 
                         </div>
                       </td>
-
                     </tr>
+                  ))
+                )}
+              </tbody>
 
-                  ))}
+            </table>
+          </div>
 
-                </tbody>
+          {/* ==================================================
+              PAGINATION
+          ================================================== */}
 
-              </table>
+          <div
+            className={`flex flex-col gap-3 border-t
+            ${borderColor} px-4 py-3
+            sm:flex-row sm:items-center sm:justify-between`}
+          >
+            <p
+              className={`text-[11px] ${textSecondary}`}
+            >
+              Showing{" "}
+              <span className={`font-medium ${textPrimary}`}>
+                {showingStart}
+              </span>{" "}
+              to{" "}
+              <span className={`font-medium ${textPrimary}`}>
+                {showingEnd}
+              </span>{" "}
+              of{" "}
+              <span className={`font-medium ${textPrimary}`}>
+                {filteredCompliance.length}
+              </span>{" "}
+              records
+            </p>
+
+            <div className="flex items-center gap-1">
+
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setCurrentPage((page) =>
+                    Math.max(1, page - 1)
+                  )
+                }
+                className={`flex h-8 w-8 items-center justify-center
+                rounded-lg border transition
+                disabled:cursor-not-allowed disabled:opacity-40
+                ${
+                  dark
+                    ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:bg-[#172238]"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <ChevronLeftIcon size={14} />
+              </button>
+
+              {Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+              )
+                .filter((page) => {
+                  if (totalPages <= 5) return true;
+
+                  if (currentPage <= 3) {
+                    return page <= 5;
+                  }
+
+                  if (currentPage >= totalPages - 2) {
+                    return page >= totalPages - 4;
+                  }
+
+                  return (
+                    page >= currentPage - 2 &&
+                    page <= currentPage + 2
+                  );
+                })
+                .map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage(page)
+                    }
+                    className={`flex h-8 min-w-8 items-center
+                    justify-center rounded-lg border px-2
+                    text-[11px] font-medium transition
+                    ${
+                      currentPage === page
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : dark
+                        ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:bg-[#172238]"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+              <button
+                type="button"
+                disabled={
+                  currentPage === totalPages
+                }
+                onClick={() =>
+                  setCurrentPage((page) =>
+                    Math.min(
+                      totalPages,
+                      page + 1
+                    )
+                  )
+                }
+                className={`flex h-8 w-8 items-center justify-center
+                rounded-lg border transition
+                disabled:cursor-not-allowed disabled:opacity-40
+                ${
+                  dark
+                    ? "border-slate-700 bg-[#111a2e] text-slate-300 hover:bg-[#172238]"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <ChevronRightIcon size={14} />
+              </button>
+
             </div>
-          )}
-
+          </div>
         </div>
       </div>
+
+      {/* ====================================================
+          CREATE / EDIT MODAL
+      ==================================================== */}
+
+      {(modal === "create" ||
+        modal === "edit") && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center
+          bg-black/50 p-4 backdrop-blur-sm"
+          onMouseDown={closeModal}
+        >
+          <div
+            className={`w-full max-w-xl rounded-2xl border
+            ${borderColor} ${cardBg} shadow-2xl`}
+            onMouseDown={(e) =>
+              e.stopPropagation()
+            }
+          >
+            {/* HEADER */}
+
+            <div
+              className={`flex items-center justify-between
+              border-b ${borderColor} px-5 py-4`}
+            >
+              <div>
+                <h2
+                  className={`text-base font-semibold ${textPrimary}`}
+                >
+                  {modal === "create"
+                    ? "Add Compliance"
+                    : "Edit Compliance"}
+                </h2>
+
+                <p
+                  className={`mt-0.5 text-[11px] ${textSecondary}`}
+                >
+                  {modal === "create"
+                    ? "Create a new compliance requirement."
+                    : "Update compliance requirement details."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className={`flex h-8 w-8 items-center
+                justify-center rounded-lg transition
+                ${
+                  dark
+                    ? "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                }`}
+              >
+                <CloseIcon size={17} />
+              </button>
+            </div>
+
+            {/* FORM */}
+
+            <form
+              onSubmit={handleSubmit}
+              className="p-5"
+            >
+
+              <div className="grid gap-4">
+
+                {/* REQUIREMENT */}
+
+                <div>
+                  <label
+                    className={`mb-1.5 block text-xs
+                    font-medium ${textPrimary}`}
+                  >
+                    Requirement
+                  </label>
+
+                  <input
+                    type="text"
+                    value={requirement}
+                    onChange={(e) =>
+                      setRequirement(e.target.value)
+                    }
+                    placeholder="Enter requirement"
+                    className={`h-10 w-full rounded-lg border
+                    ${borderColor} ${inputBg}
+                    px-3 text-xs outline-none
+                    ${
+                      dark
+                        ? "text-slate-100 placeholder:text-slate-500 focus:border-blue-500"
+                        : "text-slate-700 placeholder:text-slate-400 focus:border-blue-400"
+                    }`}
+                  />
+                </div>
+
+                {/* DESCRIPTION */}
+
+                <div>
+                  <label
+                    className={`mb-1.5 block text-xs
+                    font-medium ${textPrimary}`}
+                  >
+                    Description
+                  </label>
+
+                  <textarea
+                    value={description}
+                    onChange={(e) =>
+                      setDescription(e.target.value)
+                    }
+                    placeholder="Enter description"
+                    rows={4}
+                    className={`w-full resize-none rounded-lg border
+                    ${borderColor} ${inputBg}
+                    px-3 py-2.5 text-xs outline-none
+                    ${
+                      dark
+                        ? "text-slate-100 placeholder:text-slate-500 focus:border-blue-500"
+                        : "text-slate-700 placeholder:text-slate-400 focus:border-blue-400"
+                    }`}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+
+                  {/* STATUS */}
+
+                  <div>
+                    <label
+                      className={`mb-1.5 block text-xs
+                      font-medium ${textPrimary}`}
+                    >
+                      Status
+                    </label>
+
+                    <div className="relative">
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          setStatus(e.target.value)
+                        }
+                        className={`h-10 w-full appearance-none
+                        rounded-lg border ${borderColor}
+                        ${inputBg} px-3 pr-8 text-xs
+                        outline-none
+                        ${
+                          dark
+                            ? "text-slate-200"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        <option>Compliant</option>
+                        <option>Due Soon</option>
+                        <option>Overdue</option>
+                        <option>In Progress</option>
+                        <option>Pending</option>
+                      </select>
+
+                      <div
+                        className={`pointer-events-none absolute
+                        right-3 top-1/2 -translate-y-1/2
+                        ${textSecondary}`}
+                      >
+                        <ChevronDownIcon size={13} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AUDIT */}
+
+                  <div>
+                    <label
+                      className={`mb-1.5 block text-xs
+                      font-medium ${textPrimary}`}
+                    >
+                      Audit
+                    </label>
+
+                    <div className="relative">
+                      <select
+                        value={auditId}
+                        onChange={(e) =>
+                          setAuditId(e.target.value)
+                        }
+                        className={`h-10 w-full appearance-none
+                        rounded-lg border ${borderColor}
+                        ${inputBg} px-3 pr-8 text-xs
+                        outline-none
+                        ${
+                          dark
+                            ? "text-slate-200"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        <option value="">
+                          Select Audit
+                        </option>
+
+                        {audits.map((audit) => (
+                          <option
+                            key={audit.id}
+                            value={audit.id}
+                          >
+                            {audit.title}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div
+                        className={`pointer-events-none absolute
+                        right-3 top-1/2 -translate-y-1/2
+                        ${textSecondary}`}
+                      >
+                        <ChevronDownIcon size={13} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* FORM ERROR */}
+
+                {formError && (
+                  <div
+                    className={`rounded-lg border px-3 py-2.5
+                    text-[11px]
+                    ${
+                      dark
+                        ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
+                        : "border-rose-200 bg-rose-50 text-rose-700"
+                    }`}
+                  >
+                    {formError}
+                  </div>
+                )}
+              </div>
+
+              {/* FOOTER */}
+
+              <div
+                className="mt-5 flex justify-end gap-2"
+              >
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={formLoading}
+                  className={`h-9 rounded-lg border px-4
+                  text-xs font-medium transition
+                  ${
+                    dark
+                      ? "border-slate-700 text-slate-300 hover:bg-slate-800"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={formLoading}
+                  className="h-9 rounded-lg bg-blue-600 px-4
+                  text-xs font-semibold text-white transition
+                  hover:bg-blue-700 disabled:cursor-not-allowed
+                  disabled:opacity-60"
+                >
+                  {formLoading
+                    ? "Saving..."
+                    : modal === "create"
+                    ? "Create Compliance"
+                    : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================
+          VIEW MODAL
+      ==================================================== */}
+
+      {modal === "view" && selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center
+          bg-black/50 p-4 backdrop-blur-sm"
+          onMouseDown={closeModal}
+        >
+          <div
+            className={`w-full max-w-lg rounded-2xl border
+            ${borderColor} ${cardBg} shadow-2xl`}
+            onMouseDown={(e) =>
+              e.stopPropagation()
+            }
+          >
+            {/* HEADER */}
+
+            <div
+              className={`flex items-center justify-between
+              border-b ${borderColor} px-5 py-4`}
+            >
+              <div>
+                <p
+                  className={`text-[10px] font-semibold uppercase
+                  tracking-wider ${textSecondary}`}
+                >
+                  Compliance Details
+                </p>
+
+                <h2
+                  className={`mt-1 text-base font-semibold ${textPrimary}`}
+                >
+                  {selected.requirement}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className={`flex h-8 w-8 items-center
+                justify-center rounded-lg transition
+                ${
+                  dark
+                    ? "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                }`}
+              >
+                <CloseIcon size={17} />
+              </button>
+            </div>
+
+            {/* CONTENT */}
+
+            <div className="space-y-4 p-5">
+
+              <div>
+                <p
+                  className={`mb-1 text-[10px] font-semibold
+                  uppercase tracking-wide ${textSecondary}`}
+                >
+                  Requirement
+                </p>
+
+                <p
+                  className={`text-sm font-medium ${textPrimary}`}
+                >
+                  {selected.requirement}
+                </p>
+              </div>
+
+              <div>
+                <p
+                  className={`mb-1 text-[10px] font-semibold
+                  uppercase tracking-wide ${textSecondary}`}
+                >
+                  Description
+                </p>
+
+                <p
+                  className={`text-xs leading-5 ${textSecondary}`}
+                >
+                  {selected.description}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+
+                <div>
+                  <p
+                    className={`mb-1 text-[10px] font-semibold
+                    uppercase tracking-wide ${textSecondary}`}
+                  >
+                    Audit
+                  </p>
+
+                  <p
+                    className={`text-xs font-medium ${textPrimary}`}
+                  >
+                    {selected.audit?.title ||
+                      "No audit"}
+                  </p>
+
+                  {selected.audit?.id && (
+                    <p
+                      className={`mt-0.5 text-[10px] ${textSecondary}`}
+                    >
+                      Audit #{selected.audit.id}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <p
+                    className={`mb-1 text-[10px] font-semibold
+                    uppercase tracking-wide ${textSecondary}`}
+                  >
+                    Status
+                  </p>
+
+                  <span
+                    className={`inline-flex items-center gap-1.5
+                    rounded-full border px-2.5 py-1
+                    text-[10px] font-semibold
+                    ${statusClasses(
+                      selected.status,
+                      dark
+                    )}`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full
+                      ${statusDot(selected.status)}`}
+                    />
+
+                    {selected.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* FOOTER */}
+
+            <div
+              className={`flex justify-end border-t
+              ${borderColor} px-5 py-3`}
+            >
+              <button
+                type="button"
+                onClick={closeModal}
+                className="h-9 rounded-lg bg-blue-600
+                px-4 text-xs font-semibold text-white
+                hover:bg-blue-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================
+          DELETE CONFIRMATION MODAL
+      ==================================================== */}
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center
+          justify-center bg-black/50 p-4 backdrop-blur-sm"
+          onMouseDown={() => {
+            if (!deleteLoading) {
+              setDeleteTarget(null);
+            }
+          }}
+        >
+          <div
+            className={`w-full max-w-sm rounded-2xl border
+            ${borderColor} ${cardBg} p-5 shadow-2xl`}
+            onMouseDown={(e) =>
+              e.stopPropagation()
+            }
+          >
+            <div className="flex items-start gap-3">
+
+              <div
+                className={`flex h-10 w-10 shrink-0
+                items-center justify-center rounded-full
+                ${
+                  dark
+                    ? "bg-rose-500/10 text-rose-400"
+                    : "bg-rose-50 text-rose-600"
+                }`}
+              >
+                <TrashIcon size={17} />
+              </div>
+
+              <div>
+                <h3
+                  className={`text-sm font-semibold ${textPrimary}`}
+                >
+                  Delete Compliance?
+                </h3>
+
+                <p
+                  className={`mt-1 text-xs leading-5 ${textSecondary}`}
+                >
+                  This action cannot be undone. The selected
+                  compliance record will be permanently deleted.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`mt-4 rounded-lg border ${borderColor}
+              ${
+                dark
+                  ? "bg-[#172238]"
+                  : "bg-slate-50"
+              } p-3`}
+            >
+              <p
+                className={`truncate text-xs font-medium ${textPrimary}`}
+              >
+                {deleteTarget.requirement}
+              </p>
+
+              <p
+                className={`mt-0.5 text-[10px] ${textSecondary}`}
+              >
+                Compliance #{deleteTarget.id}
+              </p>
+            </div>
+
+            <div
+              className="mt-5 flex justify-end gap-2"
+            >
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() =>
+                  setDeleteTarget(null)
+                }
+                className={`h-9 rounded-lg border px-4
+                text-xs font-medium transition
+                ${
+                  dark
+                    ? "border-slate-700 text-slate-300 hover:bg-slate-800"
+                    : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={handleDelete}
+                className="h-9 rounded-lg bg-rose-600 px-4
+                text-xs font-semibold text-white transition
+                hover:bg-rose-700 disabled:cursor-not-allowed
+                disabled:opacity-60"
+              >
+                {deleteLoading
+                  ? "Deleting..."
+                  : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

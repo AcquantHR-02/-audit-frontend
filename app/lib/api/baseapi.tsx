@@ -11,8 +11,7 @@ baseApi.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
       const isAuthRequest =
-        config.url === "/api/auth/login" ||
-        config.url === "/api/auth/register";
+        config.url === "/api/auth/login" || config.url === "/api/auth/register";
 
       if (!isAuthRequest) {
         const token = localStorage.getItem("token");
@@ -27,7 +26,7 @@ baseApi.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 export default baseApi;
